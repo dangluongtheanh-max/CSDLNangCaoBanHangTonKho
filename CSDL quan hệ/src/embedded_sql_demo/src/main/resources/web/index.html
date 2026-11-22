@@ -1,0 +1,4205 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hệ thống Kiểm thử CSDL Đa kho &amp; Hướng đối tượng</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-alt: #f1f5f9;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text: #0f172a;
+      --text-secondary: #334155;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --primary-border: #bfdbfe;
+      --success: #047857;
+      --success-bg: #ecfdf5;
+      --success-border: #a7f3d0;
+      --danger: #b91c1c;
+      --danger-bg: #fef2f2;
+      --danger-border: #fecaca;
+      --warn: #b45309;
+      --warn-bg: #fffbeb;
+      --warn-border: #fde68a;
+      --radius: 8px;
+      --radius-lg: 10px;
+      --shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    /* Top Header */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .topbar-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .brand-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Layout Container & Tabs */
+    .container {
+      max-width: 1400px;
+      margin: 20px auto 40px;
+      padding: 0 24px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 1px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      border-radius: var(--radius) var(--radius) 0 0;
+      transition: color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: var(--surface-alt);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      background: var(--surface);
+      border-color: var(--border) var(--border) transparent;
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* Cards & Grids */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .sub {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .grid-sales {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 1100px) {
+      .grid-sales,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Form Groups inside Order Creation */
+    .form-section {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+
+    .form-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .form-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .picker-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.65fr 1fr 0.9fr 82px;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .quick-ctsp-row {
+      display: grid;
+      grid-template-columns: 145px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .quick-ctsp-row label {
+      margin: 0;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    @media (max-width: 640px) {
+      .quick-ctsp-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+    }
+
+    .transfer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.35fr 90px 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .mode-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .mode-btn {
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      height: 30px;
+      transition: all 0.15s ease;
+    }
+
+    .mode-btn:hover {
+      background: var(--surface-alt);
+      color: var(--text);
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .return-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 960px) {
+      .picker-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .form-grid-3,
+      .form-grid-4,
+      .transfer-grid,
+      .return-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--text);
+      height: 35px;
+    }
+
+    input:focus,
+    select:focus {
+      outline: 2px solid rgba(37, 99, 235, 0.18);
+      border-color: var(--primary);
+    }
+
+    /* Resolved Variant Strip */
+    .resolved-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 9px 12px;
+      border-radius: 6px;
+      background: var(--surface);
+      border: 1px solid var(--primary-border);
+      font-size: 12.5px;
+    }
+
+    .resolved-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .code-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 5px;
+      background: var(--primary);
+      color: #fff;
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: var(--surface-alt);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--text);
+    }
+
+    /* Order Cart Table */
+    .order-cart-empty {
+      font-size: 12.5px;
+      color: var(--muted);
+      padding: 8px 4px;
+    }
+
+    .order-cart-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 70px 76px 104px 30px;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12.5px;
+    }
+
+    .order-cart-row:last-of-type {
+      border-bottom: none;
+    }
+
+    .order-cart-header {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--muted);
+      padding: 0 0 6px;
+      border-bottom: 1px solid var(--border-strong);
+    }
+
+    .order-summary {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button.btn {
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    button.btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text-secondary);
+      border-color: var(--border-strong) !important;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--surface-alt);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .btn-success:hover:not(:disabled) {
+      background: #065f46;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: #991b1b;
+    }
+
+    .btn-danger-outline {
+      background: var(--surface);
+      color: var(--danger);
+      border-color: var(--danger-border) !important;
+    }
+
+    .btn-danger-outline:hover:not(:disabled) {
+      background: var(--danger-bg);
+    }
+
+    .btn-warn-outline {
+      background: var(--surface);
+      color: var(--warn);
+      border-color: var(--warn-border) !important;
+    }
+
+    .btn-warn-outline:hover:not(:disabled) {
+      background: var(--warn-bg);
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 12px;
+      height: 30px;
+    }
+
+    .btn-xs {
+      padding: 3px 8px;
+      font-size: 11.5px;
+      height: 26px;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
+    .b-blue {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .b-green {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .b-red {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .b-amber {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .b-gray {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    /* Tables */
+    .table-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-height: 440px;
+      background: var(--surface);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background: var(--surface-alt);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border-strong);
+    }
+
+    tbody tr:hover td {
+      background: #f8fafc;
+    }
+
+    tr.row-low td {
+      background: #fffbeb;
+    }
+
+    tr.row-zero td {
+      background: #fef2f2;
+    }
+
+    tr.row-flash td {
+      background: #fef08a !important;
+      transition: background-color 0.4s ease;
+    }
+
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
+
+    /* Alerts */
+    .alert {
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      border: 1px solid transparent;
+      font-size: 13px;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert.ok {
+      background: var(--success-bg);
+      border-color: var(--success-border);
+      color: #065f46;
+    }
+
+    .alert.err {
+      background: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: #991b1b;
+    }
+
+    .alert.info {
+      background: var(--primary-soft);
+      border-color: var(--primary-border);
+      color: #1e40af;
+    }
+
+    /* Transaction Testing Monitor */
+    .tx-monitor-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tx-kv {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+
+    .tx-kv .k {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .tx-kv .v {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 2px;
+      word-break: break-word;
+    }
+
+    .tx-msg-box {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      font-size: 12.5px;
+      margin-bottom: 12px;
+      word-break: break-word;
+    }
+
+    .tx-msg-box.commit {
+      background: var(--success-bg);
+      border-color: var(--success-border);
+      color: #065f46;
+    }
+
+    .tx-msg-box.rollback,
+    .tx-msg-box.failed {
+      background: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: #991b1b;
+    }
+
+    .tx-msg-box.running {
+      background: var(--primary-soft);
+      border-color: var(--primary-border);
+      color: #1e40af;
+    }
+
+    .tx-history-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      max-height: 210px;
+      overflow-y: auto;
+      background: var(--surface);
+    }
+
+    .tx-history-item {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    .tx-history-item:last-child {
+      border-bottom: none;
+    }
+
+    /* Stat Grid */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+    }
+
+    .stat-box .k {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .stat-box .v {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 3px;
+    }
+
+    .stat-box .d {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Concurrent Session Panels */
+    .toolbar-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .inline-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .inline-check input[type="checkbox"] {
+      width: auto;
+      height: auto;
+      margin: 0;
+    }
+
+    .tx-panel {
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      background: var(--surface);
+    }
+
+    .tx-panel.holding {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+    }
+
+    .tx-panel.waiting {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    .tx-panel.committed {
+      border-color: var(--success);
+    }
+
+    .tx-panel.blocked {
+      border-color: var(--danger);
+    }
+
+    .tx-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tx-status-box {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .tx-status-box.holding {
+      background: var(--warn-bg);
+      border-color: var(--warn-border);
+      color: #92400e;
+    }
+
+    .tx-status-box.waiting {
+      background: var(--primary-soft);
+      border-color: var(--primary-border);
+      color: #1e40af;
+    }
+
+    .tx-status-box.committed {
+      background: var(--success-bg);
+      border-color: var(--success-border);
+      color: #065f46;
+    }
+
+    .tx-status-box.blocked {
+      background: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: #991b1b;
+    }
+
+    .tx-logs {
+      margin: 10px 0 0;
+      padding-left: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      max-height: 110px;
+      overflow-y: auto;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 9px 12px;
+      border-left: 3px solid var(--primary);
+      background: var(--bg);
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 8px;
+      font-size: 12.5px;
+    }
+
+    .timeline-item.err {
+      border-left-color: var(--danger);
+      background: var(--danger-bg);
+    }
+
+    .timeline-item.ok {
+      border-left-color: var(--success);
+      background: var(--success-bg);
+    }
+
+    /* Code & Benchmark */
+    pre.code-box {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      font-family: var(--mono);
+      font-size: 12px;
+      overflow-x: auto;
+      margin: 6px 0 0;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .bar-row {
+      margin-bottom: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+    }
+
+    .bar-track {
+      height: 14px;
+      background: #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 4px 0 8px;
+    }
+
+    .bar-fill-before {
+      height: 100%;
+      background: #dc2626;
+    }
+
+    .bar-fill-after {
+      height: 100%;
+      background: #059669;
+    }
+
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--primary);
+      font-size: 12.5px;
+    }
+
+    /* Order Detail Subrow */
+    .order-detail-row td {
+      background: var(--bg) !important;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal-dialog {
+      width: 100%;
+      max-width: 500px;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 13px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 14.5px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .modal-dialog.err .modal-header {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-bottom-color: var(--danger-border);
+    }
+
+    .modal-dialog.ok .modal-header {
+      background: var(--success-bg);
+      color: var(--success);
+      border-bottom-color: var(--success-border);
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: inherit;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    .modal-body {
+      padding: 16px 18px;
+      color: var(--text-secondary);
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+
+    .modal-footer {
+      padding: 10px 18px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <h1>CSDL Nâng cao — Quản lý Bán hàng &amp; Tồn kho Đa kho</h1>
+        <span class="brand-sub">Dashboard kiểm thử thực nghiệm PostgreSQL 17 &amp; ObjectDB 2.9.1</span>
+      </div>
+      <div class="header-actions">
+        <span id="headerBaselineBadge" class="badge b-gray">Đang kết nối...</span>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="loadOverview()">Làm mới dữ liệu</button>
+        <button type="button" class="btn btn-warn-outline btn-sm" onclick="requestResetBaseline()">Khôi phục dữ liệu mẫu</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav class="tabs" aria-label="Phân hệ kiểm thử">
+      <button type="button" class="tab-btn active" onclick="switchTab('tab1', this)">1. Bán hàng &amp; Tồn kho</button>
+      <button type="button" class="tab-btn" onclick="switchTab('tab2', this)">2. Giao dịch đồng thời (Lock)</button>
+      <button type="button" class="tab-btn" onclick="switchTab('tab3', this)">3. Báo cáo &amp; Truy vấn SQL</button>
+      <button type="button" class="tab-btn" onclick="switchTab('tab4', this)">4. Hiệu năng Index (EXPLAIN)</button>
+      <button type="button" class="tab-btn" onclick="switchTab('tab5', this)">5. CSDL Hướng đối tượng (ObjectDB)</button>
+    </nav>
+
+    <!-- TAB 1: SALES & INVENTORY -->
+    <section id="tab1" class="tab-pane active">
+      <div class="grid-sales">
+        <!-- Left: Order Creation / Warehouse Transfer Form -->
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header">
+            <div>
+              <div class="card-title-row">
+                <h2 id="actionCardTitle">Tạo đơn hàng mới</h2>
+                <span id="actionProcBadge" class="badge b-blue">CALL sp_tao_don_hang</span>
+              </div>
+              <p id="actionCardSub" class="sub">Gọi thủ tục tạo đơn, giữ tồn kho khả dụng và kiểm chứng toàn vẹn giao dịch.</p>
+            </div>
+            <div class="mode-bar" role="group" aria-label="Chế độ giao dịch Tab 1">
+              <button type="button" id="btnModeOrder" class="mode-btn active" onclick="setTab1Mode('order')">Tạo đơn hàng</button>
+              <button type="button" id="btnModeTransfer" class="mode-btn" onclick="setTab1Mode('transfer')">Chuyển kho</button>
+              <button type="button" id="btnModeReturn" class="mode-btn" onclick="setTab1Mode('return')">Lập phiếu trả hàng</button>
+              <button type="button" id="btnModeReceive" class="mode-btn" onclick="setTab1Mode('receive')">Lập phiếu nhận hàng</button>
+            </div>
+          </div>
+
+          <div id="paneOrderAction">
+            <!-- Group 1: Customer & Warehouse -->
+            <div class="form-section">
+              <div class="form-section-title">
+                <span>1. Thông tin khách hàng &amp; kho xử lý</span>
+                <span id="ordKhoStatusBadge" class="badge b-gray">Đang tải...</span>
+              </div>
+              <div class="grid-2" style="margin-bottom:0;gap:10px;">
+                <div>
+                  <label for="ordKh">Khách hàng</label>
+                  <select id="ordKh"></select>
+                </div>
+                <div>
+                  <label for="ordKho">Kho xử lý đơn</label>
+                  <select id="ordKho" onchange="updateOrderResolvedCtsp()"></select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Group 2: Product Selection -->
+            <div class="form-section">
+              <div class="form-section-title">
+                <span>2. Chọn sản phẩm &amp; biến thể</span>
+              </div>
+              <div class="quick-ctsp-row">
+                <label for="ordCtspSelect">Chọn nhanh CTSP</label>
+                <select id="ordCtspSelect" onchange="onOrderQuickCtspSelect()"></select>
+              </div>
+              <div class="picker-grid">
+                <div>
+                  <label for="ordBrandFilter">Thương hiệu</label>
+                  <select id="ordBrandFilter" onchange="onOrderFilterChange('brand')"></select>
+                </div>
+                <div>
+                  <label for="ordCatFilter">Danh mục</label>
+                  <select id="ordCatFilter" onchange="onOrderFilterChange('cat')"></select>
+                </div>
+                <div>
+                  <label for="ordSpSelect">Sản phẩm (Mẫu giày)</label>
+                  <select id="ordSpSelect" onchange="onOrderFilterChange('sp')"></select>
+                </div>
+                <div>
+                  <label for="ordColorSelect">Màu sắc</label>
+                  <select id="ordColorSelect" onchange="onOrderFilterChange('color')"></select>
+                </div>
+                <div>
+                  <label for="ordSizeSelect">Size</label>
+                  <select id="ordSizeSelect" onchange="updateOrderResolvedCtsp()"></select>
+                </div>
+                <div>
+                  <label for="ordPickQty">Số lượng</label>
+                  <input id="ordPickQty" type="number" min="1" value="1" />
+                </div>
+              </div>
+              <div id="ordResolvedBar" class="resolved-bar"></div>
+            </div>
+
+            <!-- Group 3: Order Item List -->
+            <div class="form-section">
+              <div class="form-section-title">
+                <span>3. Danh sách mặt hàng trong đơn</span>
+                <button type="button" id="btnClearCart" class="btn btn-secondary btn-xs" style="display:none;" onclick="clearOrderCart()">Xóa danh sách</button>
+              </div>
+              <div id="ordCartBox"></div>
+            </div>
+
+            <!-- Group 4: Payment & Submission -->
+            <div class="form-section" style="margin-bottom:0;">
+              <div class="form-section-title">
+                <span>4. Thanh toán &amp; thực thi giao dịch</span>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;">
+                <div style="min-width:220px;flex:1;">
+                  <label for="ordPttt">Phương thức thanh toán</label>
+                  <select id="ordPttt">
+                    <option value="CHUYEN_KHOAN">Chuyển khoản (CHUYEN_KHOAN)</option>
+                    <option value="COD">Thanh toán khi nhận (COD)</option>
+                    <option value="VI_DIEN_TU">Ví điện tử (VI_DIEN_TU)</option>
+                    <option value="THE">Thẻ (THE)</option>
+                    <option value="TIEN_MAT">Tiền mặt (TIEN_MAT)</option>
+                  </select>
+                </div>
+                <div class="btn-row">
+                  <button type="button" id="btnSubmitOrder" class="btn btn-primary" onclick="submitOrder()">Tạo đơn hàng</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="paneTransferAction" style="display:none;">
+            <div class="form-section" style="margin-bottom:0;">
+              <div class="form-section-title"><span>Thông tin phiếu chuyển kho (sp_chuyen_kho)</span></div>
+              <div class="transfer-grid">
+                <div>
+                  <label for="trSrc">Kho nguồn</label>
+                  <select id="trSrc"></select>
+                </div>
+                <div>
+                  <label for="trDst">Kho đích</label>
+                  <select id="trDst"></select>
+                </div>
+                <div>
+                  <label for="trCtsp">Biến thể sản phẩm</label>
+                  <select id="trCtsp"></select>
+                </div>
+                <div>
+                  <label for="trQty">Số lượng</label>
+                  <input id="trQty" type="number" value="2" min="1" />
+                </div>
+                <div>
+                  <label for="trDone">Trạng thái phiếu</label>
+                  <select id="trDone">
+                    <option value="false">Đang vận chuyển (DANG_VAN_CHUYEN)</option>
+                    <option value="true">Hoàn tất ngay (HOAN_TAT)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="btn-row" style="justify-content:flex-end;">
+                <button type="button" class="btn btn-primary" onclick="submitTransfer()">Lập phiếu chuyển kho</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="paneReturnAction" style="display:none;">
+            <div class="form-section">
+              <div class="form-section-title">
+                <span>1. Chọn đơn hàng &amp; từng CTSP cần trả/đổi</span>
+                <span id="retOrderStatusBadge" class="badge b-gray">Đang tải...</span>
+              </div>
+              <div class="grid-2" style="margin-bottom:10px;gap:10px;">
+                <div>
+                  <label for="retOrder">Đơn hàng gốc (DONHANG)</label>
+                  <select id="retOrder" onchange="onReturnOrderChange()"></select>
+                </div>
+                <div>
+                  <label for="retCtdh">Dòng CTSP trong đơn (CHITIET_DONHANG)</label>
+                  <select id="retCtdh" onchange="onReturnCtdhChange()"></select>
+                </div>
+              </div>
+              <div id="retLineInfo" class="resolved-bar"></div>
+            </div>
+
+            <div class="form-section" style="margin-bottom:0;">
+              <div class="form-section-title"><span>2. Chi tiết xử lý hoàn tiền / đổi hàng</span></div>
+              <div class="return-grid">
+                <div>
+                  <label for="retType">Hình thức xử lý</label>
+                  <select id="retType" onchange="onReturnTypeChange()">
+                    <option value="HOAN_TIEN">HOAN_TIEN (100% CON_MOI · 50% DA_SU_DUNG)</option>
+                    <option value="DOI_HANG">DOI_HANG (Đổi biến thể cùng SP — chỉ CON_MOI)</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="retCond">Tình trạng sản phẩm</label>
+                  <select id="retCond" onchange="updateReturnSummary()">
+                    <option value="CON_MOI">CON_MOI (Còn mới — Hoàn 100% &amp; nhập lại kho)</option>
+                    <option value="DA_SU_DUNG">DA_SU_DUNG (Đã dùng — Chỉ hoàn 50%, không nhập kho)</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="retQty">Số lượng trả</label>
+                  <input id="retQty" type="number" min="1" value="1" oninput="updateReturnSummary()" />
+                </div>
+              </div>
+
+              <div id="retSwapWrap" style="display:none;margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+                  <label for="retSwapCtsp" style="margin:0;">Biến thể đổi (MaChiTietSPDoi &mdash; cùng MaSanPham)</label>
+                  <label class="inline-check">
+                    <input type="checkbox" id="retAllowAnySp" onchange="populateReturnSwapVariants()" />
+                    Hiện cả SP khác (test Trigger 7)
+                  </label>
+                </div>
+                <select id="retSwapCtsp" onchange="updateReturnSummary()"></select>
+              </div>
+
+              <div style="margin-bottom:10px;">
+                <label for="retReason">Lý do trả / đổi hàng</label>
+                <input id="retReason" type="text" value="Khách yêu cầu trả/đổi hàng từ Web Demo" />
+              </div>
+
+              <div id="retSummaryBar" class="resolved-bar" style="margin-bottom:10px;"></div>
+
+              <div class="btn-row" style="justify-content:flex-end;">
+                <button type="button" class="btn btn-primary" onclick="submitReturn()">Lập phiếu trả hàng</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="paneReceiveAction" style="display:none;">
+            <div class="form-section" style="margin-bottom:0;">
+              <div class="form-section-title">
+                <span>Thông tin phiếu nhận / nhập kho từ Nhà cung cấp (PHIEUNHAPKHO)</span>
+                <span id="recKhoStatusBadge" class="badge b-gray">Đang tải...</span>
+              </div>
+              <div class="grid-2" style="margin-bottom:10px;gap:10px;">
+                <div>
+                  <label for="recNcc">Nhà cung cấp (NHACUNGCAP)</label>
+                  <select id="recNcc" onchange="onReceiveNccOrVariantChange()"></select>
+                </div>
+                <div>
+                  <label for="recKho">Kho nhận hàng (KhoDich)</label>
+                  <select id="recKho" onchange="updateReceiveSummary()"></select>
+                </div>
+              </div>
+
+              <div style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+                  <label for="recCtsp" style="margin:0;">Biến thể nhập kho (CHITIET_SP)</label>
+                  <label class="inline-check">
+                    <input type="checkbox" id="recOnlyCatalog" checked onchange="populateReceiveVariants()" />
+                    Chỉ hiện SP thuộc hợp đồng CUNGCAP của NCC
+                  </label>
+                </div>
+                <select id="recCtsp" onchange="onReceiveNccOrVariantChange()"></select>
+              </div>
+
+              <div class="return-grid">
+                <div>
+                  <label for="recQty">Số lượng nhận</label>
+                  <input id="recQty" type="number" min="1" value="5" oninput="updateReceiveSummary()" />
+                </div>
+                <div>
+                  <label for="recPrice">Đơn giá nhập (VNĐ)</label>
+                  <input id="recPrice" type="number" min="0" step="1000" oninput="updateReceiveSummary()" />
+                </div>
+                <div>
+                  <label for="recNote">Ghi chú phiếu nhập</label>
+                  <input id="recNote" type="text" value="Nhập hàng từ nhà cung cấp qua Web Demo" />
+                </div>
+              </div>
+
+              <div id="recSummaryBar" class="resolved-bar" style="margin-bottom:10px;"></div>
+
+              <div class="btn-row" style="justify-content:flex-end;">
+                <button type="button" class="btn btn-success" onclick="submitReceive()">Lập phiếu nhận hàng</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Dedicated Transaction Testing Monitor -->
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header" style="margin-bottom:10px;">
+            <div>
+              <div class="card-title-row">
+                <h2>Giám sát kiểm thử giao dịch</h2>
+                <span id="txMonStatusBadge" class="badge b-gray">CHƯA CÓ GIAO DỊCH</span>
+              </div>
+              <p class="sub">Theo dõi kết quả thực thi thật, thông báo lỗi SQL và biến động tồn kho từ API.</p>
+            </div>
+            <button type="button" class="btn btn-secondary btn-xs" onclick="clearTxMonitorHistory()">Xóa nhật ký phiên</button>
+          </div>
+
+          <div class="tx-monitor-grid">
+            <div class="tx-kv">
+              <div class="k">Mã giao dịch / Chứng từ</div>
+              <div class="v" id="txMonId">—</div>
+            </div>
+            <div class="tx-kv">
+              <div class="k">Thao tác thực thi</div>
+              <div class="v" id="txMonOp">—</div>
+            </div>
+            <div class="tx-kv">
+              <div class="k">Kết quả thực thi</div>
+              <div class="v" id="txMonOutcome">Chờ thao tác kiểm thử</div>
+            </div>
+            <div class="tx-kv">
+              <div class="k">Mã lỗi SQLState</div>
+              <div class="v" id="txMonSqlState">—</div>
+            </div>
+          </div>
+
+          <div id="txMonMessage" class="tx-msg-box">
+            Thực hiện tạo đơn hàng, hủy đơn, chuyển kho, lập phiếu trả hàng hoặc nhận hàng để quan sát kết quả COMMIT / ROLLBACK / FAILED.
+          </div>
+
+          <h3>Biến động tồn kho khả dụng (Trước / Thay đổi / Sau)</h3>
+          <div id="txMonChanges" style="margin-bottom:12px;">
+            <div class="sub" style="margin:0;">Chưa có dữ liệu biến động trong phiên này.</div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+            <h3 style="margin:0;">Nhật ký phản hồi API trong phiên</h3>
+            <span style="font-size:11px;color:var(--muted);">Ghi nhận phản hồi thật từ backend</span>
+          </div>
+          <ul id="txMonHistory" class="tx-history-list">
+            <li class="tx-history-item" style="color:var(--muted);">Chưa ghi nhận giao dịch nào trong phiên trình duyệt này.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Inventory Table -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Bảng tồn kho theo kho &amp; biến thể (`TONKHO`)</h2>
+            <p class="sub">Dữ liệu thật từ PostgreSQL (`Tồn khả dụng = Thực tế − Đã giữ`). Nền vàng: sắp hết (&le; 5); nền đỏ: hết khả dụng (= 0).</p>
+          </div>
+          <div class="table-toolbar">
+            <input id="invSearch" type="search" placeholder="Tìm mã biến thể, SKU, tên..." style="width:220px;" oninput="renderInventory()" />
+            <select id="invStockFilter" style="width:170px;" onchange="renderInventory()">
+              <option value="ALL">Tất cả mức tồn</option>
+              <option value="LOW">Sắp hết (&le; 5)</option>
+              <option value="ZERO">Hết khả dụng (= 0)</option>
+            </select>
+            <select id="invFilterKho" style="width:210px;" onchange="renderInventory()">
+              <option value="ALL">Tất cả kho</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Kho</th>
+                <th>Mã biến thể</th>
+                <th>SKU</th>
+                <th>Sản phẩm</th>
+                <th>Size / Màu sắc</th>
+                <th class="num">Tồn thực tế</th>
+                <th class="num">Đã giữ</th>
+                <th class="num">Khả dụng</th>
+                <th>Thao tác nhanh</th>
+              </tr>
+            </thead>
+            <tbody id="invBody">
+              <tr><td colspan="9" style="text-align:center;color:var(--muted);">Đang tải dữ liệu tồn kho...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Order Management & Warehouse Transfers -->
+      <div class="grid-2" style="margin-bottom:0;">
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header">
+            <div>
+              <h2>Quản lý đơn hàng (`DONHANG`)</h2>
+              <p class="sub">Kiểm tra chi tiết đơn và thử hủy đơn (chỉ cho phép hủy khi chưa giao).</p>
+            </div>
+            <div class="table-toolbar">
+              <input id="ordSearch" type="search" placeholder="Tìm mã ĐH, khách, CTSP..." style="width:185px;" oninput="renderOrders()" />
+              <select id="ordStatusFilter" style="width:155px;" onchange="renderOrders()">
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="CHO_XAC_NHAN">CHO_XAC_NHAN</option>
+                <option value="DA_XAC_NHAN">DA_XAC_NHAN</option>
+                <option value="DANG_XU_LY">DANG_XU_LY</option>
+                <option value="DANG_GIAO">DANG_GIAO</option>
+                <option value="HOAN_TAT">HOAN_TAT</option>
+                <option value="DA_HUY">DA_HUY</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã đơn</th>
+                  <th>Trạng thái</th>
+                  <th>Khách hàng</th>
+                  <th>Kho</th>
+                  <th class="num">Số dòng</th>
+                  <th class="num">Tổng tiền</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="ordBody">
+                <tr><td colspan="7" style="text-align:center;color:var(--muted);">Đang tải danh sách đơn hàng...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header">
+            <div>
+              <h2>Phiếu chuyển kho (`PHIEUKHO` + `PHIEUCHUYENKHO`)</h2>
+              <p class="sub">Phiếu tạo từ web (`PK_WEB_%`) ở trạng thái <code>DANG_VAN_CHUYEN</code> có thể xác nhận nhận hàng.</p>
+            </div>
+            <div class="table-toolbar">
+              <select id="trStatusFilter" style="width:170px;" onchange="renderTransfers()">
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="DANG_VAN_CHUYEN">DANG_VAN_CHUYEN</option>
+                <option value="HOAN_TAT">HOAN_TAT</option>
+                <option value="DA_HUY">DA_HUY</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã phiếu</th>
+                  <th>Trạng thái</th>
+                  <th>Kho nguồn &rarr; Kho đích</th>
+                  <th class="num">Số lượng</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="trBody">
+                <tr><td colspan="5" style="text-align:center;color:var(--muted);">Đang tải phiếu chuyển kho...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Returns & Receiving Slips -->
+      <div class="grid-2" style="margin-top:16px;margin-bottom:0;">
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header">
+            <div>
+              <h2>Phiếu trả hàng (`PHIEUTRAHANG` + `CHITIET_TRAHANG`)</h2>
+              <p class="sub">Gắn từng dòng CTSP đơn hoàn tất; chỉ phiếu <code>HOAN_TIEN</code> trừ vào Doanh thu thuần.</p>
+            </div>
+            <div class="table-toolbar">
+              <select id="retStatusFilter" style="width:165px;" onchange="renderReturns()">
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="HOAN_TAT">HOAN_TAT</option>
+                <option value="DANG_XU_LY">DANG_XU_LY</option>
+                <option value="TU_CHOI">TU_CHOI</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã phiếu trả</th>
+                  <th>Đơn gốc</th>
+                  <th>Trạng thái</th>
+                  <th>Chi tiết CTSP</th>
+                  <th class="num">Tiền hoàn</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="retBody">
+                <tr><td colspan="6" style="text-align:center;color:var(--muted);">Đang tải phiếu trả hàng...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header">
+            <div>
+              <h2>Phiếu nhận / nhập kho (`PHIEUKHO` + `PHIEUNHAPKHO`)</h2>
+              <p class="sub">Gồm phiếu nhập hàng từ Nhà cung cấp (`MaNCC`) và nhập lại hàng trả còn mới (`MaPhieuTra`).</p>
+            </div>
+            <div class="table-toolbar">
+              <select id="recSourceFilter" style="width:165px;" onchange="renderReceives()">
+                <option value="ALL">Tất cả nguồn nhập</option>
+                <option value="NCC">Từ Nhà cung cấp</option>
+                <option value="RETURN">Từ Phiếu trả hàng</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã phiếu</th>
+                  <th>Nguồn nhập</th>
+                  <th>Kho đích</th>
+                  <th class="num">SL</th>
+                  <th class="num">Giá trị</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="recBody">
+                <tr><td colspan="6" style="text-align:center;color:var(--muted);">Đang tải phiếu nhận hàng...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: CONCURRENT TRANSACTIONS -->
+    <section id="tab2" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title-row">
+              <h2>Kiểm thử tranh chấp đồng thời (2 phiên độc lập)</h2>
+              <span class="badge b-blue">READ COMMITTED &middot; FOR UPDATE</span>
+              <span class="badge b-gray">pg_locks Live</span>
+            </div>
+            <p class="sub">Mở 2 kết nối PostgreSQL độc lập để kiểm chứng khóa mức dòng (Row Lock) và chống bán vượt tồn kho (Overselling).</p>
+          </div>
+          <button type="button" class="btn btn-warn-outline btn-sm" onclick="txResetBoth()">Đóng 2 phiên &amp; khôi phục mẫu</button>
+        </div>
+
+        <div id="txWatchBar" class="stat-grid"></div>
+
+        <div class="toolbar-strip">
+          <div class="btn-row">
+            <button type="button" id="txBtnStartBoth" class="btn btn-primary btn-sm" onclick="txStartBoth()">
+              Mở đồng thời 2 phiên (A &amp; B)
+            </button>
+            <button type="button" id="txBtnAutoConc" class="btn btn-success btn-sm" onclick="runAutoConcurrencyDemo()">
+              Chạy kịch bản tự động (Thread A &harr; B)
+            </button>
+          </div>
+          <label class="inline-check">
+            <input type="checkbox" id="txSyncTarget" checked onchange="syncTxBFromA()" />
+            Đồng bộ Kho &amp; Sản phẩm Phiên A &rarr; Phiên B
+          </label>
+        </div>
+
+        <div id="autoConcResult" style="margin-bottom:14px;"></div>
+
+        <div class="grid-2">
+          <!-- Session A -->
+          <div id="txPanelA" class="tx-panel">
+            <div class="tx-head">
+              <strong>Phiên giao dịch A</strong>
+              <span id="txBadgeA" class="badge b-gray">CHƯA MỞ</span>
+            </div>
+            <div class="form-grid-4">
+              <div><label for="txAKh">Khách hàng A</label><select id="txAKh"></select></div>
+              <div><label for="txAKho">Kho A</label><select id="txAKho" onchange="onTxATargetChange()"></select></div>
+              <div><label for="txACtsp">Sản phẩm A</label><select id="txACtsp" onchange="onTxATargetChange()"></select></div>
+              <div><label for="txAQty">Số lượng A</label><input id="txAQty" type="number" value="2" min="1" /></div>
+            </div>
+            <div class="btn-row" style="margin-top:12px;">
+              <button type="button" id="txBtnStartA" class="btn btn-primary btn-sm" onclick="txStart('A')">1. Mở giao dịch &amp; giữ khóa</button>
+              <button type="button" id="txBtnCommitA" class="btn btn-success btn-sm" onclick="txFinish('A', 'commit')" disabled>2a. COMMIT</button>
+              <button type="button" id="txBtnRollbackA" class="btn btn-danger btn-sm" onclick="txFinish('A', 'rollback')" disabled>2b. ROLLBACK</button>
+            </div>
+            <div id="txStatusA" class="tx-status-box">Chưa mở giao dịch.</div>
+            <ul id="txLogsA" class="tx-logs"></ul>
+          </div>
+
+          <!-- Session B -->
+          <div id="txPanelB" class="tx-panel">
+            <div class="tx-head">
+              <strong>Phiên giao dịch B</strong>
+              <span id="txBadgeB" class="badge b-gray">CHƯA MỞ</span>
+            </div>
+            <div class="form-grid-4">
+              <div><label for="txBKh">Khách hàng B</label><select id="txBKh"></select></div>
+              <div><label for="txBKho">Kho B</label><select id="txBKho"></select></div>
+              <div><label for="txBCtsp">Sản phẩm B</label><select id="txBCtsp"></select></div>
+              <div><label for="txBQty">Số lượng B</label><input id="txBQty" type="number" value="1" min="1" /></div>
+            </div>
+            <div class="btn-row" style="margin-top:12px;">
+              <button type="button" id="txBtnStartB" class="btn btn-primary btn-sm" onclick="txStart('B')">1. Mở giao dịch &amp; giữ khóa</button>
+              <button type="button" id="txBtnCommitB" class="btn btn-success btn-sm" onclick="txFinish('B', 'commit')" disabled>2a. COMMIT</button>
+              <button type="button" id="txBtnRollbackB" class="btn btn-danger btn-sm" onclick="txFinish('B', 'rollback')" disabled>2b. ROLLBACK</button>
+            </div>
+            <div id="txStatusB" class="tx-status-box">Chưa mở giao dịch.</div>
+            <ul id="txLogsB" class="tx-logs"></ul>
+          </div>
+        </div>
+
+        <h3>Trạng thái khóa trực tiếp từ PostgreSQL (<code>pg_stat_activity</code> &amp; <code>pg_locks</code>)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Phiên</th>
+                <th>PostgreSQL PID</th>
+                <th>Trạng thái phiên</th>
+                <th>Sự kiện chờ</th>
+                <th>Bị chặn bởi PID</th>
+                <th>Khóa đang giữ / chờ</th>
+              </tr>
+            </thead>
+            <tbody id="txLocksBody">
+              <tr>
+                <td colspan="6" style="text-align:center;color:var(--muted);">Chưa có phiên giao dịch nào đang mở kết nối tới PostgreSQL.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: SQL REPORTS & 12 QUERIES -->
+    <section id="tab3" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title-row">
+              <h2>Báo cáo doanh thu động</h2>
+              <span class="badge b-blue">Dynamic SQL &middot; Recursive CTE</span>
+            </div>
+            <p class="sub">Hàm <code>fn_bao_cao_doanh_thu_dong</code> tự xây dựng điều kiện lọc theo kho, khoảng ngày và danh mục (bao gồm danh mục con/cháu).</p>
+          </div>
+        </div>
+        <div class="form-grid-4" style="margin-bottom:10px;">
+          <div>
+            <label for="dynKho">Kho</label>
+            <select id="dynKho" onchange="runDynamicReport()">
+              <option value="">Tất cả kho (NULL)</option>
+            </select>
+          </div>
+          <div>
+            <label for="dynDm">Danh mục (bao gồm con/cháu)</label>
+            <select id="dynDm" onchange="runDynamicReport()">
+              <option value="">Tất cả danh mục (NULL)</option>
+            </select>
+          </div>
+          <div>
+            <label for="dynFrom">Từ ngày (nhập đủ 2 ngày)</label>
+            <input id="dynFrom" type="date" onchange="runDynamicReport()" />
+          </div>
+          <div>
+            <label for="dynTo">Đến ngày (nhập đủ 2 ngày)</label>
+            <input id="dynTo" type="date" onchange="runDynamicReport()" />
+          </div>
+        </div>
+        <div id="dynDateHint" class="alert"></div>
+        <div id="dynParamsPreview" style="font-size:12px;color:var(--muted);margin-bottom:10px;"></div>
+        <div id="dynResult">
+          <p class="sub" style="margin:0;">Đang tải kết quả báo cáo động...</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-header">
+          <div>
+            <h2>Thực thi 12 truy vấn nghiệp vụ (`03_queries.sql`)</h2>
+            <p class="sub">Xem trước câu SQL gốc, chọn truy vấn và quan sát bảng kết quả trực tiếp từ PostgreSQL 17.</p>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-secondary btn-xs" onclick="runSelectedSqlQuery(3)">Câu 3: Doanh thu tháng</button>
+            <button type="button" class="btn btn-secondary btn-xs" onclick="runSelectedSqlQuery(4)">Câu 4: Doanh thu kho</button>
+            <button type="button" class="btn btn-secondary btn-xs" onclick="runSelectedSqlQuery(5)">Câu 5: SP sắp hết</button>
+            <button type="button" class="btn btn-secondary btn-xs" onclick="runSelectedSqlQuery(6)">Câu 6: NCC nhiều hàng</button>
+            <button type="button" class="btn btn-secondary btn-xs" onclick="runSelectedSqlQuery(12)">Câu 12: Đệ quy danh mục</button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title"><span>Chọn truy vấn &amp; điều khiển thực thi</span></div>
+          <div class="btn-row">
+            <select id="qSelect" style="flex:1 1 420px;max-width:680px;" onchange="previewSelectedSqlQuery()"></select>
+            <button type="button" id="btnRunSqlQuery" class="btn btn-primary" onclick="runSelectedSqlQuery()">Chạy truy vấn</button>
+          </div>
+        </div>
+
+        <div id="sqlCodePreview" style="margin-bottom:14px;"></div>
+        <div id="sqlQueryResult"></div>
+      </div>
+    </section>
+
+    <!-- TAB 4: INDEX PERFORMANCE -->
+    <section id="tab4" class="tab-pane">
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-header">
+          <div>
+            <div class="card-title-row">
+              <h2>Đo hiệu năng Index (`EXPLAIN (ANALYZE, BUFFERS)`)</h2>
+              <span class="badge b-blue">50.000 đơn hàng &middot; 18 Index</span>
+            </div>
+            <p class="sub">Gỡ tạm 18 Index, sinh dữ liệu benchmark (<code>BM_%</code>), đo kế hoạch thực thi Trước vs. Sau Index và tự động dọn sạch dữ liệu tạm.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="btnBench" onclick="runLiveBenchmark()">Chạy benchmark trên PostgreSQL 17</button>
+        </div>
+
+        <div id="benchResult">
+          <div class="stat-grid" style="margin-bottom:0;">
+            <div class="stat-box"><div class="k">BM1 (Độ chọn lọc 0.1%)</div><div class="v" style="font-size:14px;">Lịch sử đơn theo khách</div><div class="d">So sánh <code>Seq Scan</code> với <code>Bitmap Index Scan</code> trên <code>idx_donhang_kh_ngaydat</code>.</div></div>
+            <div class="stat-box"><div class="k">BM2 (JOIN 100k dòng)</div><div class="v" style="font-size:14px;">Doanh thu chốt ngày 1 kho</div><div class="d">Lọc đồng thời Kho, Trạng thái và Ngày qua <code>idx_donhang_kho_trangthai</code>.</div></div>
+            <div class="stat-box"><div class="k">BM3 (Top-20 LIMIT)</div><div class="v" style="font-size:14px;">20 khách đăng ký gần nhất</div><div class="d">Loại bỏ bước <code>Sort</code> nhờ thứ tự <code>DESC</code> của <code>idx_khachhang_ngaydangky</code>.</div></div>
+            <div class="stat-box"><div class="k">BM4 (Đối chiếu ~70%)</div><div class="v" style="font-size:14px;">Thống kê đơn <code>HOAN_TAT</code></div><div class="d">Độ chọn lọc thấp (~70% bảng): Optimizer giữ <code>Seq Scan</code> vì chi phí thấp hơn Index.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: OBJECTDB (OODB) -->
+    <section id="tab5" class="tab-pane">
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-header">
+          <div>
+            <div class="card-title-row">
+              <h2>Phân hệ CSDL Hướng đối tượng (OODB)</h2>
+              <span class="badge b-blue">ObjectDB 2.9.1 &middot; ODMG 3.0</span>
+            </div>
+            <p class="sub">Hoạt động độc lập với PostgreSQL: kiểm chứng OID, kế thừa (<code>PhieuXuatKho extends PhieuKho</code>), Collection, quan hệ 2 chiều, phương thức OOP và đối chiếu OQL &harr; JPQL.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="btnOodb" onclick="runLiveOodb()">Chạy thực nghiệm ObjectDB</button>
+        </div>
+        <div id="oodbResult">
+          <div class="alert show info" style="margin-bottom:0;">
+            Bấm <strong>Chạy thực nghiệm ObjectDB</strong> để nạp đối tượng mẫu qua <code>DataSeeder</code>, thực thi 6 truy vấn đối chiếu OQL &harr; JPQL và kiểm chứng phương thức trên 7 lớp Entity.
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Reusable Confirmation / Alert Modal -->
+  <div id="appModal" class="modal-backdrop" onclick="if (event.target === this) closeAppModal()">
+    <div id="appModalDialog" class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="appModalTitle">
+      <div class="modal-header">
+        <span id="appModalTitle">Thông báo hệ thống</span>
+        <button class="modal-close" type="button" aria-label="Đóng" onclick="closeAppModal()">&times;</button>
+      </div>
+      <div id="appModalBody" class="modal-body"></div>
+      <div id="appModalFooter" class="modal-footer">
+        <button id="appModalCancelBtn" class="btn btn-secondary btn-sm" type="button" style="display:none;" onclick="closeAppModal()">Hủy bỏ</button>
+        <button id="appModalCloseBtn" class="btn btn-primary btn-sm" type="button" onclick="closeAppModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STATE = {
+      overview: null,
+      oodb: null,
+      sqlCatalog: [],
+      orderCart: [],
+      tab1Mode: "order",
+      expandedOrderId: null,
+      expandedTransferId: null,
+      expandedReturnId: null,
+      expandedReceiveId: null,
+      txHistory: [],
+      pendingConfirmAction: null
+    };
+
+    function fmtMoney(v) {
+      if (v === null || v === undefined) return "0";
+      return Number(v).toLocaleString("vi-VN", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " đ";
+    }
+
+    function esc(s) {
+      if (s === null || s === undefined) return "";
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function cleanErr(s) {
+      return String(s || "").replace(/^ERROR:\s*/i, "").trim();
+    }
+
+    function nowTimeStr() {
+      const d = new Date();
+      return d.toLocaleTimeString("vi-VN", { hour12: false });
+    }
+
+    function closeAppModal() {
+      document.getElementById("appModal").classList.remove("show");
+      STATE.pendingConfirmAction = null;
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closeAppModal();
+    });
+
+    function showAlert(kind, title, html) {
+      const dlg = document.getElementById("appModalDialog");
+      dlg.className = "modal-dialog " + (kind === "err" ? "err" : (kind === "ok" ? "ok" : ""));
+      document.getElementById("appModalTitle").textContent = title || "Thông báo hệ thống";
+      document.getElementById("appModalBody").innerHTML = html;
+      document.getElementById("appModalCancelBtn").style.display = "none";
+      const okBtn = document.getElementById("appModalCloseBtn");
+      okBtn.textContent = "Đóng";
+      okBtn.className = "btn btn-sm " + (kind === "err" ? "btn-danger" : (kind === "ok" ? "btn-success" : "btn-primary"));
+      okBtn.onclick = closeAppModal;
+      STATE.pendingConfirmAction = null;
+      document.getElementById("appModal").classList.add("show");
+    }
+
+    function showConfirm(title, html, confirmLabel, isDanger, onConfirm) {
+      const dlg = document.getElementById("appModalDialog");
+      dlg.className = "modal-dialog " + (isDanger ? "err" : "");
+      document.getElementById("appModalTitle").textContent = title;
+      document.getElementById("appModalBody").innerHTML = html;
+      document.getElementById("appModalCancelBtn").style.display = "inline-flex";
+      const okBtn = document.getElementById("appModalCloseBtn");
+      okBtn.textContent = confirmLabel || "Xác nhận";
+      okBtn.className = "btn btn-sm " + (isDanger ? "btn-danger" : "btn-primary");
+      STATE.pendingConfirmAction = onConfirm;
+      okBtn.onclick = async () => {
+        const fn = STATE.pendingConfirmAction;
+        closeAppModal();
+        if (typeof fn === "function") await fn();
+      };
+      document.getElementById("appModal").classList.add("show");
+    }
+
+    function switchTab(id, btn) {
+      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      btn.classList.add("active");
+      if (id === "tab2") refreshTxStatus();
+    }
+
+    function setTab1Mode(mode) {
+      const validModes = ["order", "transfer", "return", "receive"];
+      STATE.tab1Mode = validModes.includes(mode) ? mode : "order";
+      const m = STATE.tab1Mode;
+
+      const panes = {
+        order: "paneOrderAction",
+        transfer: "paneTransferAction",
+        return: "paneReturnAction",
+        receive: "paneReceiveAction"
+      };
+      const btns = {
+        order: "btnModeOrder",
+        transfer: "btnModeTransfer",
+        return: "btnModeReturn",
+        receive: "btnModeReceive"
+      };
+      const meta = {
+        order: {
+          title: "Tạo đơn hàng mới",
+          sub: "Gọi thủ tục tạo đơn, giữ tồn kho khả dụng và kiểm chứng toàn vẹn giao dịch.",
+          badge: "CALL sp_tao_don_hang",
+          badgeCls: "badge b-blue"
+        },
+        transfer: {
+          title: "Lập phiếu chuyển kho",
+          sub: "Điều chuyển tồn kho giữa hai kho khác nhau (hoàn tất ngay hoặc đang vận chuyển).",
+          badge: "CALL sp_chuyen_kho",
+          badgeCls: "badge b-blue"
+        },
+        return: {
+          title: "Lập phiếu trả / đổi hàng",
+          sub: "Trả hoặc đổi theo từng dòng CTSP trong đơn hàng; giữ nguyên chứng từ gốc và cập nhật tồn kho + hoàn tiền.",
+          badge: "TX PHIEUTRAHANG + Trigger 7",
+          badgeCls: "badge b-amber"
+        },
+        receive: {
+          title: "Lập phiếu nhận hàng (Nhập kho NCC)",
+          sub: "Nhận hàng từ nhà cung cấp vào kho đích (PHIEUKHO + PHIEUNHAPKHO) và tăng tồn kho thực tế.",
+          badge: "TX PHIEUNHAPKHO + Trigger 5,8",
+          badgeCls: "badge b-green"
+        }
+      };
+
+      for (const key of validModes) {
+        const paneEl = document.getElementById(panes[key]);
+        if (paneEl) paneEl.style.display = (key === m) ? "" : "none";
+        const btnEl = document.getElementById(btns[key]);
+        if (btnEl) btnEl.classList.toggle("active", key === m);
+      }
+
+      document.getElementById("actionCardTitle").textContent = meta[m].title;
+      document.getElementById("actionCardSub").textContent = meta[m].sub;
+      const badge = document.getElementById("actionProcBadge");
+      badge.className = meta[m].badgeCls;
+      badge.textContent = meta[m].badge;
+    }
+
+    const isOpenedViaWebDemo = window.location.protocol.startsWith("http")
+      && window.location.port !== "5500"
+      && !window.location.pathname.includes("/src/main/resources/web/");
+    const API_BASE = isOpenedViaWebDemo ? "" : "http://127.0.0.1:8080";
+
+    async function api(url, opts) {
+      let res;
+      try {
+        res = await fetch(API_BASE + url, opts);
+      } catch (networkErr) {
+        throw new Error("Không kết nối được backend WebDemoServer tại cổng 8080.");
+      }
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch (_) {
+        throw new Error("Phản hồi không phải JSON hợp lệ. Hãy mở đúng địa chỉ http://127.0.0.1:8080.");
+      }
+    }
+
+    async function loadOverview() {
+      try {
+        const data = await api("/api/overview");
+        if (!data.ok) {
+          showAlert("err", "Lỗi kết nối PostgreSQL", esc(cleanErr(data.error)));
+          return;
+        }
+        STATE.overview = data;
+        renderHeaderBaseline(data.baseline);
+        populateSelects(data);
+        renderInventory();
+        renderOrders();
+        renderTransfers();
+        renderReturns();
+        renderReceives();
+      } catch (e) {
+        const b = document.getElementById("headerBaselineBadge");
+        if (b) {
+          b.className = "badge b-red";
+          b.textContent = "Mất kết nối DB";
+        }
+        showAlert("err", "Lỗi kết nối máy chủ", esc(e.message));
+      }
+    }
+
+    function renderHeaderBaseline(b) {
+      const el = document.getElementById("headerBaselineBadge");
+      if (!el || !b) return;
+      el.className = "badge " + (b.isCleanBaseline ? "b-green" : "b-amber");
+      el.textContent = `${b.donHang} đơn · ${b.tonKho} dòng tồn · ${b.indexes} Index · ${b.isCleanBaseline ? "Dữ liệu chuẩn" : "Đã thay đổi"}`;
+    }
+
+    function getVariantMap() {
+      const variants = (STATE.overview && STATE.overview.variants) || [];
+      return new Map(variants.map(v => [v.machitietsp, v]));
+    }
+
+    function getDescendantCatSet(rootCatId) {
+      if (!rootCatId) return null;
+      const cats = (STATE.overview && STATE.overview.categories) || [];
+      const childrenByParent = new Map();
+      for (const c of cats) {
+        const p = c.madanhmuccha || "";
+        if (!childrenByParent.has(p)) childrenByParent.set(p, []);
+        childrenByParent.get(p).push(c.madanhmuc);
+      }
+      const set = new Set([rootCatId]);
+      const queue = [rootCatId];
+      while (queue.length > 0) {
+        const cur = queue.shift();
+        for (const ch of (childrenByParent.get(cur) || [])) {
+          if (!set.has(ch)) {
+            set.add(ch);
+            queue.push(ch);
+          }
+        }
+      }
+      return set;
+    }
+
+    function getFilteredOrderVariants(brandId, catId) {
+      const variants = (STATE.overview && STATE.overview.variants) || [];
+      const catSet = getDescendantCatSet(catId);
+      return variants.filter(v =>
+        (!brandId || v.mathuonghieu === brandId) && (!catSet || catSet.has(v.madanhmuc))
+      );
+    }
+
+    function populateOrderPickerBrands() {
+      const brands = (STATE.overview && STATE.overview.brands) || [];
+      const el = document.getElementById("ordBrandFilter");
+      const prev = el.value;
+      el.innerHTML = '<option value="">Tất cả thương hiệu</option>' +
+        brands.map(b => `<option value="${esc(b.mathuonghieu)}">${esc(b.tenthuonghieu)}</option>`).join("");
+      if (prev && brands.some(b => b.mathuonghieu === prev)) el.value = prev;
+    }
+
+    function populateOrderPickerCats(brandId) {
+      const cats = (STATE.overview && STATE.overview.categories) || [];
+      const variantsByBrand = getFilteredOrderVariants(brandId, "");
+      const leafCats = new Set(variantsByBrand.map(v => v.madanhmuc));
+      const matchingCats = cats.filter(c => {
+        const ds = getDescendantCatSet(c.madanhmuc);
+        for (const leaf of leafCats) {
+          if (ds.has(leaf)) return true;
+        }
+        return false;
+      });
+      const el = document.getElementById("ordCatFilter");
+      const prev = el.value;
+      el.innerHTML = '<option value="">Tất cả danh mục</option>' +
+        matchingCats.map(c => `<option value="${esc(c.madanhmuc)}">${esc(c.tendanhmuc)}${c.madanhmuccha ? '' : ' (Gốc)'}</option>`).join("");
+      el.value = matchingCats.some(c => c.madanhmuc === prev) ? prev : "";
+    }
+
+    function populateOrderPickerProducts(brandId, catId) {
+      const filtered = getFilteredOrderVariants(brandId, catId);
+      const spMap = new Map();
+      for (const v of filtered) {
+        if (!spMap.has(v.masanpham)) spMap.set(v.masanpham, v);
+      }
+      const spList = Array.from(spMap.values());
+      const el = document.getElementById("ordSpSelect");
+      const prev = el.value;
+      el.innerHTML = spList.map(sp => {
+        const st = sp.trangthaisp === "DANG_KINH_DOANH" ? "" : ` [${sp.trangthaisp}]`;
+        return `<option value="${esc(sp.masanpham)}">${esc(sp.tensanpham)} — ${esc(fmtMoney(sp.gianiemyet))}${esc(st)}</option>`;
+      }).join("");
+      if (prev && spMap.has(prev)) el.value = prev;
+      else if (spList.length) el.value = spList[0].masanpham;
+    }
+
+    function populateOrderPickerColors(spId) {
+      const variants = (STATE.overview && STATE.overview.variants) || [];
+      const colors = [];
+      const seen = new Set();
+      for (const v of variants) {
+        if (v.masanpham === spId && !seen.has(v.mausac)) {
+          seen.add(v.mausac);
+          colors.push(v.mausac);
+        }
+      }
+      const el = document.getElementById("ordColorSelect");
+      const prev = el.value;
+      el.innerHTML = colors.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+      if (prev && seen.has(prev)) el.value = prev;
+      else if (colors.length) el.value = colors[0];
+    }
+
+    function populateOrderPickerSizes(spId, color) {
+      const variants = (STATE.overview && STATE.overview.variants) || [];
+      const sizes = [];
+      const seen = new Set();
+      for (const v of variants) {
+        if (v.masanpham === spId && v.mausac === color && !seen.has(v.size)) {
+          seen.add(v.size);
+          sizes.push(v.size);
+        }
+      }
+      sizes.sort((a, b) => Number(a) - Number(b));
+      const el = document.getElementById("ordSizeSelect");
+      const prev = el.value;
+      el.innerHTML = sizes.map(s => `<option value="${esc(s)}">Size ${esc(s)}</option>`).join("");
+      if (prev && seen.has(prev)) el.value = prev;
+      else if (sizes.length) el.value = sizes[0];
+    }
+
+    function onOrderFilterChange(level) {
+      const brandEl = document.getElementById("ordBrandFilter");
+      const catEl = document.getElementById("ordCatFilter");
+      const spEl = document.getElementById("ordSpSelect");
+      const colorEl = document.getElementById("ordColorSelect");
+      if (level === "brand") populateOrderPickerCats(brandEl.value);
+      if (level === "brand" || level === "cat") populateOrderPickerProducts(brandEl.value, catEl.value);
+      if (level === "brand" || level === "cat" || level === "sp") populateOrderPickerColors(spEl.value);
+      populateOrderPickerSizes(spEl.value, colorEl.value);
+      updateOrderResolvedCtsp();
+    }
+
+    function getResolvedOrderVariant() {
+      const variants = (STATE.overview && STATE.overview.variants) || [];
+      const spId = document.getElementById("ordSpSelect").value;
+      const color = document.getElementById("ordColorSelect").value;
+      const size = document.getElementById("ordSizeSelect").value;
+      return variants.find(v => v.masanpham === spId && v.mausac === color && v.size === size) || null;
+    }
+
+    function findInventoryRecord(maKho, maCtsp) {
+      const inv = (STATE.overview && STATE.overview.inventory) || [];
+      return inv.find(r => r.makho === maKho && r.machitietsp === maCtsp) || null;
+    }
+
+    function highlightInventoryRow(maKho, maCtsp) {
+      const filterEl = document.getElementById("invFilterKho");
+      const stockEl = document.getElementById("invStockFilter");
+      const searchEl = document.getElementById("invSearch");
+      let changed = false;
+      if (filterEl.value !== "ALL" && filterEl.value !== maKho) {
+        filterEl.value = maKho;
+        changed = true;
+      }
+      if (stockEl && stockEl.value !== "ALL") {
+        stockEl.value = "ALL";
+        changed = true;
+      }
+      if (searchEl && searchEl.value) {
+        searchEl.value = "";
+        changed = true;
+      }
+      if (changed) renderInventory();
+
+      const row = document.querySelector(`#invBody tr[data-kho="${maKho}"][data-ctsp="${maCtsp}"]`);
+      if (!row) {
+        showAlert("info", "Không tìm thấy dòng tồn kho", `Trong <code>TONKHO</code> chưa có bản ghi cho <strong>(${esc(maKho)}, ${esc(maCtsp)})</strong>.`);
+        return;
+      }
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.classList.remove("row-flash");
+      void row.offsetWidth;
+      row.classList.add("row-flash");
+      setTimeout(() => row.classList.remove("row-flash"), 2000);
+    }
+
+    function updateOrderResolvedCtsp() {
+      const bar = document.getElementById("ordResolvedBar");
+      const khoBadge = document.getElementById("ordKhoStatusBadge");
+      if (!bar) return;
+      const v = getResolvedOrderVariant();
+      const maKho = document.getElementById("ordKho").value;
+      populateOrderCtspSelect(v ? v.machitietsp : null);
+      const khoObj = ((STATE.overview && STATE.overview.warehouses) || []).find(w => w.makho === maKho);
+      if (khoBadge && khoObj) {
+        khoBadge.className = "badge " + (khoObj.trangthai === "HOAT_DONG" ? "b-green" : "b-red");
+        khoBadge.textContent = `${khoObj.makho} · ${khoObj.trangthai}`;
+      }
+      if (!v) {
+        bar.innerHTML = `<span style="color:var(--muted);">Chưa chọn đủ thông tin sản phẩm.</span>`;
+        renderOrderCart();
+        return;
+      }
+      const inv = findInventoryRecord(maKho, v.machitietsp);
+      const kd = inv ? Number(inv.soluongkhadung) : 0;
+      const tt = inv ? Number(inv.soluongthucte) : 0;
+      const dg = inv ? Number(inv.soluongdagiu) : 0;
+      const kdBadge = kd <= 0 ? "b-red" : (kd <= 5 ? "b-amber" : "b-green");
+      const activeSale = v.trangthaictsp === "DANG_BAN" && v.trangthaisp === "DANG_KINH_DOANH";
+      const stBadge = activeSale ? "b-green" : "b-red";
+      const stLabel = activeSale ? "DANG_BAN" : `${v.trangthaictsp} / ${v.trangthaisp}`;
+      const invHtml = inv
+        ? `Khả dụng tại <strong>${esc(maKho)}</strong>: <span class="badge ${kdBadge}">${kd}</span> <span style="color:var(--muted);">(Thực tế: ${tt} · Đã giữ: ${dg})</span>`
+        : `<span class="badge b-gray">Chưa có tồn tại ${esc(maKho)}</span>`;
+
+      bar.innerHTML = `
+        <div class="resolved-info">
+          <span class="code-pill">${esc(v.machitietsp)}</span>
+          <code>${esc(v.sku)}</code>
+          <span class="badge ${stBadge}">${esc(stLabel)}</span>
+          <span>${invHtml}</span>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-success btn-sm" onclick="addPickedToCart()">+ Thêm vào đơn</button>
+          ${inv ? `<button type="button" class="btn btn-secondary btn-sm" onclick="highlightInventoryRow('${esc(maKho)}','${esc(v.machitietsp)}')">Xem tồn kho</button>` : ""}
+        </div>`;
+      renderOrderCart();
+    }
+
+    function addPickedToCart() {
+      const v = getResolvedOrderVariant();
+      if (!v) return;
+      const qty = Number(document.getElementById("ordPickQty").value);
+      if (!Number.isInteger(qty) || qty <= 0) {
+        showAlert("err", "Dữ liệu không hợp lệ", `Số lượng của <code>${esc(v.machitietsp)}</code> phải là số nguyên dương.`);
+        return;
+      }
+      const existing = STATE.orderCart.find(it => it.maCtsp === v.machitietsp);
+      if (existing) {
+        existing.soLuong += qty;
+      } else {
+        STATE.orderCart.push({ maCtsp: v.machitietsp, soLuong: qty, chietKhau: 0 });
+      }
+      document.getElementById("ordPickQty").value = 1;
+      renderOrderCart();
+    }
+
+    function updateCartItemField(idx, field, val) {
+      const item = STATE.orderCart[idx];
+      if (!item) return;
+      item[field] = Number(val);
+      renderOrderCart();
+    }
+
+    function removeCartItem(idx) {
+      STATE.orderCart.splice(idx, 1);
+      renderOrderCart();
+    }
+
+    function clearOrderCart() {
+      STATE.orderCart = [];
+      renderOrderCart();
+    }
+
+    function renderOrderCart() {
+      const box = document.getElementById("ordCartBox");
+      const btnSubmit = document.getElementById("btnSubmitOrder");
+      const btnClear = document.getElementById("btnClearCart");
+      const picked = getResolvedOrderVariant();
+      if (!box) return;
+
+      if (STATE.orderCart.length === 0) {
+        if (btnClear) btnClear.style.display = "none";
+        const quickCode = picked ? `<code>${esc(picked.machitietsp)}</code>` : "biến thể đang chọn";
+        box.innerHTML = `<div class="order-cart-empty">Danh sách mặt hàng đang trống. Bấm <strong>+ Thêm vào đơn</strong> để ghép nhiều sản phẩm, hoặc bấm <strong>Tạo đơn hàng</strong> để đặt trực tiếp ${quickCode}.</div>`;
+        if (btnSubmit) btnSubmit.textContent = picked ? `Tạo đơn hàng (${picked.machitietsp})` : "Tạo đơn hàng";
+        return;
+      }
+      if (btnClear) btnClear.style.display = "inline-flex";
+
+      const vMap = getVariantMap();
+      let totalQty = 0;
+      let totalMoney = 0;
+      const rowsHtml = STATE.orderCart.map((it, idx) => {
+        const v = vMap.get(it.maCtsp);
+        const price = v ? Number(v.gianiemyet || 0) : 0;
+        const qty = Number.isFinite(it.soLuong) && it.soLuong > 0 ? it.soLuong : 0;
+        const disc = Number.isFinite(it.chietKhau) ? Math.min(100, Math.max(0, it.chietKhau)) : 0;
+        const lineTotal = qty * price * (1 - disc / 100);
+        totalQty += qty;
+        totalMoney += lineTotal;
+        const variantDesc = v ? `${v.mausac} · Size ${v.size}` : "";
+        return `<div class="order-cart-row">
+          <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(it.maCtsp + ' — ' + (v ? v.tensanpham : ''))}">
+            <code>${esc(it.maCtsp)}</code> <strong>${esc(v ? v.tensanpham : it.maCtsp)}</strong>
+            <span style="color:var(--muted);">(${esc(variantDesc)})</span>
+          </div>
+          <input type="number" min="1" value="${Number(it.soLuong || 1)}" title="Số lượng" onchange="updateCartItemField(${idx}, 'soLuong', this.value)" />
+          <input type="number" min="0" max="100" step="0.5" value="${Number(it.chietKhau || 0)}" title="Chiết khấu %" onchange="updateCartItemField(${idx}, 'chietKhau', this.value)" />
+          <div class="num"><strong>${fmtMoney(lineTotal)}</strong></div>
+          <button type="button" class="btn btn-secondary btn-xs" style="padding:0;" title="Xóa dòng" onclick="removeCartItem(${idx})">&times;</button>
+        </div>`;
+      }).join("");
+
+      box.innerHTML = `
+        <div class="order-cart-row order-cart-header">
+          <div>Biến thể sản phẩm</div>
+          <div>SL</div>
+          <div>CK (%)</div>
+          <div class="num">Tạm tính</div>
+          <div></div>
+        </div>
+        ${rowsHtml}
+        <div class="order-summary">
+          <span>Tổng cộng: <strong>${STATE.orderCart.length}</strong> dòng &middot; <strong>${totalQty}</strong> đôi</span>
+          <span>Ước tính: <strong>${fmtMoney(totalMoney)}</strong></span>
+        </div>`;
+      if (btnSubmit) btnSubmit.textContent = `Tạo đơn hàng (${STATE.orderCart.length} mặt hàng)`;
+    }
+
+    function populateOrderCtspSelect(selectedCtspId) {
+      const sel = document.getElementById("ordCtspSelect");
+      if (!sel) return;
+      const variants = (STATE.overview && STATE.overview.variants) || [];
+      const maKho = document.getElementById("ordKho").value;
+      const prev = selectedCtspId || sel.value;
+      sel.innerHTML = variants.map(v => {
+        const inv = findInventoryRecord(maKho, v.machitietsp);
+        const stockText = inv
+          ? `Khả dụng ${maKho}: ${inv.soluongkhadung}`
+          : `Chưa có tồn ${maKho}`;
+        const active = v.trangthaictsp === "DANG_BAN" && v.trangthaisp === "DANG_KINH_DOANH";
+        const stText = active ? "" : ` [${v.trangthaictsp}/${v.trangthaisp}]`;
+        return `<option value="${esc(v.machitietsp)}">${esc(v.machitietsp)} — ${esc(v.tensanpham)} (${esc(v.mausac)} · Size ${esc(v.size)} · ${esc(v.sku)}) · ${esc(stockText)}${esc(stText)}</option>`;
+      }).join("");
+      if (prev && variants.some(v => v.machitietsp === prev)) {
+        sel.value = prev;
+      }
+    }
+
+    function applyOrderVariantSelection(maCtsp, syncBrandAndCategory = true) {
+      const v = getVariantMap().get(maCtsp);
+      if (!v) return;
+      const brandEl = document.getElementById("ordBrandFilter");
+      const catEl = document.getElementById("ordCatFilter");
+      const targetBrand = syncBrandAndCategory ? (v.mathuonghieu || "") : "";
+      const targetCat = syncBrandAndCategory ? (v.madanhmuc || "") : "";
+      brandEl.value = targetBrand;
+      populateOrderPickerCats(targetBrand);
+      catEl.value = targetCat;
+      populateOrderPickerProducts(targetBrand, targetCat);
+      document.getElementById("ordSpSelect").value = v.masanpham;
+      populateOrderPickerColors(v.masanpham);
+      document.getElementById("ordColorSelect").value = v.mausac;
+      populateOrderPickerSizes(v.masanpham, v.mausac);
+      document.getElementById("ordSizeSelect").value = v.size;
+      updateOrderResolvedCtsp();
+    }
+
+    function onOrderQuickCtspSelect() {
+      const maCtsp = document.getElementById("ordCtspSelect").value;
+      applyOrderVariantSelection(maCtsp, true);
+    }
+
+    function selectVariantInFilter(maKho, maCtsp) {
+      document.getElementById("ordKho").value = maKho;
+      applyOrderVariantSelection(maCtsp, true);
+    }
+
+    function populateSelects(data) {
+      fillSelect("ordKh", data.customers, c => c.makh, c => `${c.makh} — ${c.hoten}`);
+      fillSelect("ordKho", data.warehouses, w => w.makho, w => `${w.makho} — ${w.tenkho} (${w.trangthai})`);
+      populateOrderPickerBrands();
+      onOrderFilterChange("brand");
+      fillSelect("trSrc", data.warehouses, w => w.makho, w => `${w.makho} — ${w.tenkho} (${w.trangthai})`);
+      fillSelect("trDst", data.warehouses, w => w.makho, w => `${w.makho} — ${w.tenkho} (${w.trangthai})`, "KHO02");
+      fillSelect("trCtsp", data.variants, v => v.machitietsp,
+        v => `${v.machitietsp} | ${v.tensanpham} (${v.mausac} · S${v.size})`);
+
+      populateReturnSelects(data);
+      populateReceiveSelects(data);
+
+      fillSelect("txAKh", data.customers, c => c.makh, c => `${c.makh} — ${c.hoten}`, "KH01");
+      fillSelect("txAKho", data.warehouses, w => w.makho, w => `${w.makho} — ${w.tenkho}`, "KHO01");
+      fillSelect("txACtsp", data.variants, v => v.machitietsp,
+        v => `${v.machitietsp} | ${v.tensanpham} (Size ${v.size})`, "CTSP18");
+
+      fillSelect("txBKh", data.customers, c => c.makh, c => `${c.makh} — ${c.hoten}`, "KH02");
+      fillSelect("txBKho", data.warehouses, w => w.makho, w => `${w.makho} — ${w.tenkho}`, "KHO01");
+      fillSelect("txBCtsp", data.variants, v => v.machitietsp,
+        v => `${v.machitietsp} | ${v.tensanpham} (Size ${v.size})`, "CTSP18");
+
+      const invFilter = document.getElementById("invFilterKho");
+      const prevInv = invFilter.value;
+      invFilter.innerHTML = '<option value="ALL">Tất cả kho</option>' +
+        data.warehouses.map(w => `<option value="${esc(w.makho)}">${esc(w.makho)} — ${esc(w.tenkho)}</option>`).join("");
+      if (prevInv) invFilter.value = prevInv;
+
+      const dynKho = document.getElementById("dynKho");
+      const prevDK = dynKho.value;
+      dynKho.innerHTML = '<option value="">Tất cả kho (NULL)</option>' +
+        data.warehouses.map(w => `<option value="${esc(w.makho)}">${esc(w.makho)} — ${esc(w.tenkho)}</option>`).join("");
+      if (prevDK) dynKho.value = prevDK;
+
+      const dynDm = document.getElementById("dynDm");
+      const prevDM = dynDm.value;
+      dynDm.innerHTML = '<option value="">Tất cả danh mục (NULL)</option>' +
+        data.categories.map(c => `<option value="${esc(c.madanhmuc)}">${esc(c.madanhmuc)} — ${esc(c.tendanhmuc)}${c.madanhmuccha ? '' : ' (Gốc)'}</option>`).join("");
+      if (prevDM) dynDm.value = prevDM;
+    }
+
+    function fillSelect(id, items, valFn, labelFn, defaultVal) {
+      const el = document.getElementById(id);
+      const prev = el.value;
+      el.innerHTML = items.map(x => `<option value="${esc(valFn(x))}">${esc(labelFn(x))}</option>`).join("");
+      if (prev && items.some(x => valFn(x) === prev)) el.value = prev;
+      else if (defaultVal && items.some(x => valFn(x) === defaultVal)) el.value = defaultVal;
+    }
+
+    /* Transaction Testing Monitor (Tab 1) */
+    function setTxMonitorRunning(op, txId) {
+      const badge = document.getElementById("txMonStatusBadge");
+      badge.className = "badge b-blue";
+      badge.textContent = "RUNNING";
+      document.getElementById("txMonId").textContent = txId || "Đang cấp phát...";
+      document.getElementById("txMonOp").textContent = op;
+      document.getElementById("txMonOutcome").textContent = "Đang thực thi trên PostgreSQL...";
+      document.getElementById("txMonSqlState").textContent = "—";
+      const msgEl = document.getElementById("txMonMessage");
+      msgEl.className = "tx-msg-box running";
+      msgEl.textContent = "Đang gửi giao dịch tới máy chủ CSDL...";
+    }
+
+    function updateTxMonitor(entry) {
+      const badge = document.getElementById("txMonStatusBadge");
+      const msgEl = document.getElementById("txMonMessage");
+      const st = entry.status;
+      if (st === "COMMIT") {
+        badge.className = "badge b-green";
+        msgEl.className = "tx-msg-box commit";
+      } else if (st === "ROLLBACK" || st === "FAILED") {
+        badge.className = "badge b-red";
+        msgEl.className = "tx-msg-box " + st.toLowerCase();
+      } else {
+        badge.className = "badge b-gray";
+        msgEl.className = "tx-msg-box";
+      }
+      badge.textContent = st;
+      document.getElementById("txMonId").textContent = entry.txId || "Không có";
+      document.getElementById("txMonOp").textContent = entry.operation;
+      document.getElementById("txMonOutcome").textContent = entry.outcome;
+      document.getElementById("txMonSqlState").textContent = entry.sqlState || "—";
+      msgEl.innerHTML = entry.messageHtml;
+
+      const changesEl = document.getElementById("txMonChanges");
+      if (Array.isArray(entry.changes) && entry.changes.length > 0) {
+        const rows = entry.changes.map(ch => {
+          const delta = ch.afterAvail - ch.beforeAvail;
+          const deltaStr = delta > 0 ? `+${delta}` : (delta < 0 ? `${delta}` : "0 (Không đổi)");
+          const deltaBadge = delta === 0 ? "b-gray" : (delta < 0 ? "b-amber" : "b-green");
+          return `<tr>
+            <td><code>${esc(ch.maCtsp)}</code></td>
+            <td><strong>${esc(ch.maKho)}</strong></td>
+            <td class="num">${ch.beforeAvail}</td>
+            <td class="num"><span class="badge ${deltaBadge}">${esc(deltaStr)}</span></td>
+            <td class="num"><strong>${ch.afterAvail}</strong></td>
+          </tr>`;
+        }).join("");
+        changesEl.innerHTML = `<div class="table-wrap" style="max-height:190px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Biến thể</th>
+                <th>Kho</th>
+                <th class="num">Khả dụng trước</th>
+                <th class="num">Thay đổi</th>
+                <th class="num">Khả dụng sau</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+      } else {
+        changesEl.innerHTML = `<div class="sub" style="margin:0;">${esc(entry.changesUnavailableNote || "API không trả về số liệu tồn kho trước/sau cho thao tác này.")}</div>`;
+      }
+
+      STATE.txHistory.unshift(entry);
+      if (STATE.txHistory.length > 15) STATE.txHistory.length = 15;
+      renderTxMonitorHistory();
+    }
+
+    function renderTxMonitorHistory() {
+      const list = document.getElementById("txMonHistory");
+      if (!list) return;
+      if (STATE.txHistory.length === 0) {
+        list.innerHTML = `<li class="tx-history-item" style="color:var(--muted);">Chưa ghi nhận giao dịch nào trong phiên trình duyệt này.</li>`;
+        return;
+      }
+      list.innerHTML = STATE.txHistory.map(item => {
+        const badgeCls = item.status === "COMMIT" ? "b-green" : "b-red";
+        return `<li class="tx-history-item">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+            <span><strong>${esc(item.time)}</strong> &middot; <code>${esc(item.operation)}</code> ${item.txId ? `(${esc(item.txId)})` : ""}</span>
+            <span class="badge ${badgeCls}">${esc(item.status)}</span>
+          </div>
+          <div style="color:var(--text-secondary);margin-top:2px;">${esc(item.summaryText)}</div>
+        </li>`;
+      }).join("");
+    }
+
+    function clearTxMonitorHistory() {
+      STATE.txHistory = [];
+      renderTxMonitorHistory();
+    }
+
+    /* Inventory Table */
+    function renderInventory() {
+      const data = STATE.overview;
+      if (!data) return;
+      const filterKho = document.getElementById("invFilterKho").value;
+      const stockFilter = document.getElementById("invStockFilter").value;
+      const searchEl = document.getElementById("invSearch");
+      const kw = searchEl ? searchEl.value.trim().toLowerCase() : "";
+
+      const rows = (data.inventory || []).filter(r => {
+        if (filterKho !== "ALL" && r.makho !== filterKho) return false;
+        const kd = Number(r.soluongkhadung);
+        if (stockFilter === "LOW" && kd > 5) return false;
+        if (stockFilter === "ZERO" && kd !== 0) return false;
+        if (kw) {
+          const hay = `${r.makho} ${r.machitietsp} ${r.sku} ${r.tensanpham} ${r.mausac} ${r.size}`.toLowerCase();
+          if (!hay.includes(kw)) return false;
+        }
+        return true;
+      });
+
+      if (rows.length === 0) {
+        document.getElementById("invBody").innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);">Không có mặt hàng nào khớp bộ lọc hiện tại.</td></tr>`;
+        return;
+      }
+
+      document.getElementById("invBody").innerHTML = rows.map(r => {
+        const kd = Number(r.soluongkhadung);
+        const rowCls = kd <= 0 ? "row-zero" : (kd <= 5 ? "row-low" : "");
+        const badge = kd <= 0 ? "b-red" : (kd <= 5 ? "b-amber" : "b-green");
+        return `<tr class="${rowCls}" data-kho="${esc(r.makho)}" data-ctsp="${esc(r.machitietsp)}">
+          <td><strong>${esc(r.makho)}</strong></td>
+          <td><code>${esc(r.machitietsp)}</code></td>
+          <td class="nowrap"><code>${esc(r.sku)}</code></td>
+          <td>${esc(r.tensanpham)}</td>
+          <td class="nowrap">Size ${esc(r.size)} &middot; ${esc(r.mausac)}</td>
+          <td class="num">${r.soluongthucte}</td>
+          <td class="num">${r.soluongdagiu}</td>
+          <td class="num"><span class="badge ${badge}">${kd}</span></td>
+          <td class="nowrap">
+            <div class="btn-row" style="gap:4px;flex-wrap:nowrap;">
+              <button type="button" class="btn btn-secondary btn-xs" onclick="pickVariantFromInventory('${esc(r.makho)}','${esc(r.machitietsp)}')">Chọn</button>
+              <button type="button" class="btn btn-primary btn-xs" onclick="quickAddFromInventory('${esc(r.makho)}','${esc(r.machitietsp)}')">+ Giỏ</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join("");
+    }
+
+    function pickVariantFromInventory(maKho, maCtsp) {
+      setTab1Mode("order");
+      selectVariantInFilter(maKho, maCtsp);
+      document.getElementById("paneOrderAction").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function quickAddFromInventory(maKho, maCtsp) {
+      setTab1Mode("order");
+      const currentKho = document.getElementById("ordKho").value;
+      if (currentKho !== maKho && STATE.orderCart.length > 0) {
+        STATE.orderCart = [];
+      }
+      selectVariantInFilter(maKho, maCtsp);
+      const existing = STATE.orderCart.find(it => it.maCtsp === maCtsp);
+      if (existing) existing.soLuong += 1;
+      else STATE.orderCart.push({ maCtsp, soLuong: 1, chietKhau: 0 });
+      renderOrderCart();
+      document.getElementById("ordCartBox").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function statusBadge(st) {
+      if (st === "HOAN_TAT") return "b-green";
+      if (st === "DA_HUY") return "b-gray";
+      if (st === "DANG_VAN_CHUYEN" || st === "DANG_GIAO") return "b-blue";
+      return "b-amber";
+    }
+
+    /* Order Management */
+    function renderOrders() {
+      const orders = (STATE.overview && STATE.overview.orders) || [];
+      const kw = (document.getElementById("ordSearch")?.value || "").trim().toLowerCase();
+      const stFilter = document.getElementById("ordStatusFilter")?.value || "ALL";
+      const filtered = orders.filter(o => {
+        if (stFilter !== "ALL" && o.trangthai !== stFilter) return false;
+        if (kw) {
+          const hay = `${o.madonhang} ${o.tenkhachhang} ${o.makho} ${o.chitiettomtat || ""}`.toLowerCase();
+          if (!hay.includes(kw)) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        document.getElementById("ordBody").innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);">Không có đơn hàng nào khớp bộ lọc.</td></tr>`;
+        return;
+      }
+
+      document.getElementById("ordBody").innerHTML = filtered.map(o => {
+        const isOpen = STATE.expandedOrderId === o.madonhang;
+        const canReturn = o.trangthai === "HOAN_TAT";
+        const canComplete = o.madonhang.startsWith("DH_WEB_") && o.trangthai !== "HOAN_TAT" && o.trangthai !== "DA_HUY";
+        const soNgay = Number(o.songaytungaydat || 0);
+        const ageBadge = canReturn
+          ? ` <span class="badge ${soNgay > 14 ? 'b-red' : 'b-green'}" title="Số ngày từ ngày đặt">${soNgay}d</span>`
+          : "";
+        const mainRow = `<tr>
+          <td><strong>${esc(o.madonhang)}</strong></td>
+          <td><span class="badge ${statusBadge(o.trangthai)}">${esc(o.trangthai)}</span>${ageBadge}</td>
+          <td>${esc(o.tenkhachhang)}</td>
+          <td><strong>${esc(o.makho)}</strong></td>
+          <td class="num">${Number(o.somathang || 0)}</td>
+          <td class="num"><strong>${fmtMoney(o.tongtien)}</strong></td>
+          <td class="nowrap">
+            <div class="btn-row" style="gap:4px;flex-wrap:nowrap;">
+              <button type="button" class="btn btn-secondary btn-xs" onclick="toggleOrderDetail('${esc(o.madonhang)}')">${isOpen ? "Ẩn" : "Chi tiết"}</button>
+              ${canComplete ? `<button type="button" class="btn btn-success btn-xs" onclick="requestCompleteOrder('${esc(o.madonhang)}','${esc(o.trangthai)}')">Hoàn tất</button>` : ""}
+              ${canReturn ? `<button type="button" class="btn btn-warn-outline btn-xs" onclick="openReturnForOrder('${esc(o.madonhang)}')">Trả hàng</button>` : ""}
+              <button type="button" class="btn btn-danger-outline btn-xs" onclick="requestCancelOrder('${esc(o.madonhang)}','${esc(o.trangthai)}')">Hủy đơn</button>
+            </div>
+          </td>
+        </tr>`;
+        if (!isOpen) return mainRow;
+        const detailRow = `<tr class="order-detail-row">
+          <td colspan="7">
+            <div><strong>Ngày đặt:</strong> ${esc(o.ngaydat)} &middot; <strong>Thanh toán:</strong> ${esc(o.phuongthucthanhtoan)}</div>
+            <div><strong>Chi tiết mặt hàng:</strong> ${esc(o.chitiettomtat || "Không có")}</div>
+            ${o.ghichu ? `<div><strong>Ghi chú:</strong> ${esc(o.ghichu)}</div>` : ""}
+          </td>
+        </tr>`;
+        return mainRow + detailRow;
+      }).join("");
+    }
+
+    function toggleOrderDetail(maDonHang) {
+      STATE.expandedOrderId = STATE.expandedOrderId === maDonHang ? null : maDonHang;
+      renderOrders();
+    }
+
+    /* Warehouse Transfer Table */
+    function renderTransfers() {
+      const transfers = (STATE.overview && STATE.overview.transfers) || [];
+      const stFilter = document.getElementById("trStatusFilter")?.value || "ALL";
+      const filtered = transfers.filter(t => stFilter === "ALL" || t.trangthai === stFilter);
+
+      if (filtered.length === 0) {
+        document.getElementById("trBody").innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);">Không có phiếu chuyển kho nào khớp bộ lọc.</td></tr>`;
+        return;
+      }
+
+      document.getElementById("trBody").innerHTML = filtered.map(t => {
+        const canConfirm = t.maphieu.startsWith("PK_WEB_") && t.trangthai === "DANG_VAN_CHUYEN";
+        const isOpen = STATE.expandedTransferId === t.maphieu;
+        const confirmBtn = canConfirm
+          ? `<button type="button" class="btn btn-success btn-xs" onclick="confirmTransfer('${esc(t.maphieu)}')">Xác nhận nhận</button>`
+          : "";
+        const mainRow = `<tr>
+          <td><strong>${esc(t.maphieu)}</strong></td>
+          <td><span class="badge ${statusBadge(t.trangthai)}">${esc(t.trangthai)}</span></td>
+          <td class="nowrap"><span class="badge b-gray">${esc(t.khonguon)}</span> &rarr; <span class="badge b-blue">${esc(t.khodich)}</span></td>
+          <td class="num"><strong>${t.tongsoluong}</strong></td>
+          <td class="nowrap">
+            <div class="btn-row" style="gap:4px;flex-wrap:nowrap;">
+              <button type="button" class="btn btn-secondary btn-xs" onclick="toggleTransferDetail('${esc(t.maphieu)}')">${isOpen ? "Ẩn" : "Chi tiết"}</button>
+              ${confirmBtn}
+            </div>
+          </td>
+        </tr>`;
+        if (!isOpen) return mainRow;
+        const detailRow = `<tr class="order-detail-row">
+          <td colspan="5">
+            <div><strong>Ngày lập:</strong> ${esc(t.ngaylap || "—")} &middot; <strong>Nguồn &rarr; Đích:</strong> ${esc(t.khonguon)} &rarr; ${esc(t.khodich)}</div>
+            <div><strong>Ghi chú:</strong> ${esc(t.ghichu || "Không có ghi chú")}</div>
+          </td>
+        </tr>`;
+        return mainRow + detailRow;
+      }).join("");
+    }
+
+    function toggleTransferDetail(maPhieu) {
+      STATE.expandedTransferId = STATE.expandedTransferId === maPhieu ? null : maPhieu;
+      renderTransfers();
+    }
+
+    /* Order & Transfer Actions */
+    async function submitOrder() {
+      const maKho = document.getElementById("ordKho").value;
+      let items;
+      if (STATE.orderCart.length > 0) {
+        items = STATE.orderCart.map(it => ({
+          maCtsp: it.maCtsp,
+          soLuong: Number(it.soLuong),
+          chietKhau: Number(it.chietKhau)
+        }));
+      } else {
+        const picked = getResolvedOrderVariant();
+        if (!picked) {
+          showAlert("err", "Thiếu thông tin", "Vui lòng chọn biến thể sản phẩm cần đặt.");
+          return;
+        }
+        items = [{
+          maCtsp: picked.machitietsp,
+          soLuong: Number(document.getElementById("ordPickQty").value),
+          chietKhau: 0
+        }];
+      }
+
+      for (const it of items) {
+        if (!Number.isInteger(it.soLuong) || it.soLuong <= 0) {
+          showAlert("err", "Dữ liệu không hợp lệ", `Số lượng của <code>${esc(it.maCtsp)}</code> phải là số nguyên dương.`);
+          return;
+        }
+        if (!Number.isFinite(it.chietKhau) || it.chietKhau < 0 || it.chietKhau > 100) {
+          showAlert("err", "Dữ liệu không hợp lệ", `Chiết khấu của <code>${esc(it.maCtsp)}</code> phải từ 0% đến 100%.`);
+          return;
+        }
+      }
+
+      const payload = {
+        maKh: document.getElementById("ordKh").value,
+        maKho,
+        pttt: document.getElementById("ordPttt").value,
+        items
+      };
+
+      setTxMonitorRunning("CALL sp_tao_don_hang", "Đang tạo...");
+      try {
+        const res = await api("/api/orders/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const changes = (Array.isArray(res.itemChanges) ? res.itemChanges : []).map(ch => ({
+          maCtsp: ch.maCtsp,
+          maKho,
+          beforeAvail: ch.beforeAvail,
+          afterAvail: ch.afterAvail
+        }));
+        if (res.ok) {
+          STATE.orderCart = [];
+          document.getElementById("ordPickQty").value = 1;
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: "COMMIT",
+            txId: res.maDonHang,
+            operation: "CALL sp_tao_don_hang",
+            outcome: `Thành công (${res.itemCount || items.length} mặt hàng · ${fmtMoney(res.tongTien)})`,
+            sqlState: "00000",
+            messageHtml: `<strong>COMMIT thành công:</strong> Đã tạo đơn <code>${esc(res.maDonHang)}</code> và giữ tồn kho tại <strong>${esc(maKho)}</strong>.`,
+            summaryText: `COMMIT đơn ${res.maDonHang} — Tổng ${fmtMoney(res.tongTien)}`,
+            changes
+          });
+        } else {
+          const txStatus = res.rolledBack ? "ROLLBACK" : "FAILED";
+          const errMsg = cleanErr(res.errorMessage || res.error || "Giao dịch bị từ chối bởi PostgreSQL.");
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: txStatus,
+            txId: res.maDonHang || "Đã hoàn tác",
+            operation: "CALL sp_tao_don_hang",
+            outcome: res.rolledBack ? "Bị chặn & Đã ROLLBACK toàn đơn" : "Thất bại",
+            sqlState: res.sqlState || "—",
+            messageHtml: `<strong>${esc(txStatus)}:</strong> ${esc(errMsg)}`,
+            summaryText: `${txStatus} (${res.sqlState || "ERR"}): ${errMsg}`,
+            changes
+          });
+          showAlert("err", "Giao dịch bị từ chối & ROLLBACK", `<strong>Lý do từ PostgreSQL:</strong> ${esc(errMsg)}<br><strong>SQLState:</strong> <code>${esc(res.sqlState || "—")}</code>`);
+        }
+      } catch (err) {
+        updateTxMonitor({
+          time: nowTimeStr(),
+          status: "FAILED",
+          txId: "—",
+          operation: "CALL sp_tao_don_hang",
+          outcome: "Lỗi kết nối API",
+          sqlState: "—",
+          messageHtml: `<strong>FAILED:</strong> ${esc(err.message)}`,
+          summaryText: `FAILED: ${err.message}`,
+          changes: []
+        });
+      }
+      await loadOverview();
+    }
+
+    function requestCompleteOrder(maDonHang, trangThai) {
+      showConfirm(
+        `Xác nhận giao & hoàn tất ${maDonHang}`,
+        `Đơn hàng <code>${esc(maDonHang)}</code> đang ở trạng thái <span class="badge ${statusBadge(trangThai)}">${esc(trangThai)}</span>.<br>Thao tác này sẽ xuất kho giao hàng (tạo <code>PHIEUXUATKHO</code>, trừ tồn thực tế &amp; giải phóng hàng giữ) và chuyển đơn sang <code>HOAN_TAT</code> (trong hạn hoàn 14 ngày).`,
+        "Xác nhận hoàn tất",
+        false,
+        () => completeOrder(maDonHang)
+      );
+    }
+
+    async function completeOrder(maDonHang) {
+      setTxMonitorRunning("TX Complete DONHANG + PHIEUXUATKHO", maDonHang);
+      try {
+        const res = await api("/api/orders/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ maDonHang })
+        });
+        const changes = (Array.isArray(res.itemChanges) ? res.itemChanges : []).map(ch => ({
+          maCtsp: ch.maCtsp,
+          maKho: res.maKho || "KHO01",
+          beforeAvail: ch.beforeAvail,
+          afterAvail: ch.afterAvail
+        }));
+        if (res.ok) {
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: "COMMIT",
+            txId: `${maDonHang} · ${res.maPhieuXuat}`,
+            operation: "TX Complete + PHIEUXUATKHO",
+            outcome: "Xuất kho & chuyển đơn sang HOAN_TAT thành công",
+            sqlState: "00000",
+            messageHtml: `<strong>COMMIT thành công:</strong> Đơn <code>${esc(maDonHang)}</code> đã xuất kho (<code>${esc(res.maPhieuXuat)}</code>) và chuyển sang <code>HOAN_TAT</code>. Bạn có thể bấm <strong>Trả hàng</strong> ngay trong 14 ngày.`,
+            summaryText: `COMMIT hoàn tất đơn ${maDonHang} (${res.maPhieuXuat})`,
+            changes
+          });
+        } else {
+          const errMsg = cleanErr(res.errorMessage || res.error || "Không thể hoàn tất đơn hàng.");
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: "ROLLBACK",
+            txId: maDonHang,
+            operation: "TX Complete + PHIEUXUATKHO",
+            outcome: "Bị chặn & ROLLBACK",
+            sqlState: res.sqlState || "—",
+            messageHtml: `<strong>ROLLBACK:</strong> ${esc(errMsg)}`,
+            summaryText: `ROLLBACK hoàn tất ${maDonHang}: ${errMsg}`,
+            changes
+          });
+          showAlert("err", `Không thể hoàn tất đơn ${esc(maDonHang)}`, esc(errMsg));
+        }
+      } catch (err) {
+        updateTxMonitor({
+          time: nowTimeStr(),
+          status: "FAILED",
+          txId: maDonHang,
+          operation: "TX Complete + PHIEUXUATKHO",
+          outcome: "Lỗi kết nối API",
+          sqlState: "—",
+          messageHtml: `<strong>FAILED:</strong> ${esc(err.message)}`,
+          summaryText: `FAILED: ${err.message}`,
+          changes: []
+        });
+      }
+      await loadOverview();
+      await runDynamicReport();
+    }
+
+    function requestCancelOrder(maDonHang, trangThai) {
+      showConfirm(
+        `Xác nhận hủy đơn ${maDonHang}`,
+        `Đơn hàng <code>${esc(maDonHang)}</code> hiện đang ở trạng thái <span class="badge ${statusBadge(trangThai)}">${esc(trangThai)}</span>.<br>Bạn có chắc muốn gọi <code>CALL sp_huy_don_hang</code> để hủy đơn này?`,
+        "Xác nhận hủy đơn",
+        true,
+        () => cancelOrder(maDonHang)
+      );
+    }
+
+    async function cancelOrder(maDonHang) {
+      setTxMonitorRunning("CALL sp_huy_don_hang", maDonHang);
+      try {
+        const res = await api("/api/orders/cancel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ maDonHang, lyDo: "Huy tu Web Demo" })
+        });
+        if (res.ok) {
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: "COMMIT",
+            txId: maDonHang,
+            operation: "CALL sp_huy_don_hang",
+            outcome: "Hủy đơn & giải phóng hàng giữ thành công",
+            sqlState: "00000",
+            messageHtml: `<strong>COMMIT thành công:</strong> Đơn <code>${esc(maDonHang)}</code> đã chuyển sang <code>DA_HUY</code>.`,
+            summaryText: `COMMIT hủy đơn ${maDonHang}`,
+            changes: [],
+            changesUnavailableNote: "API hủy đơn không trả về số liệu tồn kho trước/sau; hãy đối chiếu tại Bảng tồn kho bên dưới."
+          });
+        } else {
+          const errMsg = cleanErr(res.errorMessage || res.error || "Không thể hủy đơn hàng.");
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: "FAILED",
+            txId: maDonHang,
+            operation: "CALL sp_huy_don_hang",
+            outcome: "Bị chặn bởi quy tắc nghiệp vụ",
+            sqlState: res.sqlState || "—",
+            messageHtml: `<strong>FAILED:</strong> ${esc(errMsg)}`,
+            summaryText: `FAILED hủy ${maDonHang}: ${errMsg}`,
+            changes: [],
+            changesUnavailableNote: "Thao tác bị từ chối; không có thay đổi tồn kho."
+          });
+          showAlert("err", `Không thể hủy đơn ${esc(maDonHang)}`, `${esc(errMsg)}`);
+        }
+      } catch (err) {
+        updateTxMonitor({
+          time: nowTimeStr(),
+          status: "FAILED",
+          txId: maDonHang,
+          operation: "CALL sp_huy_don_hang",
+          outcome: "Lỗi kết nối API",
+          sqlState: "—",
+          messageHtml: `<strong>FAILED:</strong> ${esc(err.message)}`,
+          summaryText: `FAILED: ${err.message}`,
+          changes: []
+        });
+      }
+      await loadOverview();
+    }
+
+    async function submitTransfer() {
+      const khoNguon = document.getElementById("trSrc").value;
+      const khoDich = document.getElementById("trDst").value;
+      const maCtsp = document.getElementById("trCtsp").value;
+      const soLuong = Number(document.getElementById("trQty").value);
+      const hoanTat = document.getElementById("trDone").value === "true";
+
+      if (!Number.isInteger(soLuong) || soLuong <= 0) {
+        showAlert("err", "Dữ liệu không hợp lệ", "Số lượng chuyển kho phải là số nguyên dương.");
+        return;
+      }
+
+      setTxMonitorRunning("CALL sp_chuyen_kho", "Đang lập phiếu...");
+      try {
+        const res = await api("/api/warehouse/transfer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ khoNguon, khoDich, maCtsp, soLuong, hoanTat })
+        });
+        if (res.ok) {
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: "COMMIT",
+            txId: res.maPhieu,
+            operation: "CALL sp_chuyen_kho",
+            outcome: res.hoanTat ? "Chuyển kho HOAN_TAT ngay" : "Đã lập phiếu DANG_VAN_CHUYEN",
+            sqlState: "00000",
+            messageHtml: `<strong>COMMIT thành công:</strong> Phiếu <code>${esc(res.maPhieu)}</code> (${esc(khoNguon)} &rarr; ${esc(khoDich)}).`,
+            summaryText: `COMMIT phiếu ${res.maPhieu} (${khoNguon} -> ${khoDich}, SL ${soLuong})`,
+            changes: [
+              { maCtsp, maKho: khoNguon, beforeAvail: res.beforeSrc, afterAvail: res.afterSrc },
+              { maCtsp, maKho: khoDich, beforeAvail: res.beforeDst, afterAvail: res.afterDst }
+            ]
+          });
+        } else {
+          const errMsg = cleanErr(res.errorMessage || res.error || "Chuyển kho bị từ chối.");
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: "ROLLBACK",
+            txId: "Đã hoàn tác",
+            operation: "CALL sp_chuyen_kho",
+            outcome: "Bị chặn & Đã ROLLBACK",
+            sqlState: res.sqlState || "—",
+            messageHtml: `<strong>ROLLBACK:</strong> ${esc(errMsg)}`,
+            summaryText: `ROLLBACK chuyển kho (${res.sqlState || "ERR"}): ${errMsg}`,
+            changes: [],
+            changesUnavailableNote: "Chuyển kho bị chặn và hoàn tác; tồn kho không thay đổi."
+          });
+          showAlert("err", "Chuyển kho bị chặn", `${esc(errMsg)}`);
+        }
+      } catch (err) {
+        updateTxMonitor({
+          time: nowTimeStr(),
+          status: "FAILED",
+          txId: "—",
+          operation: "CALL sp_chuyen_kho",
+          outcome: "Lỗi kết nối API",
+          sqlState: "—",
+          messageHtml: `<strong>FAILED:</strong> ${esc(err.message)}`,
+          summaryText: `FAILED: ${err.message}`,
+          changes: []
+        });
+      }
+      await loadOverview();
+    }
+
+    async function confirmTransfer(maPhieu) {
+      setTxMonitorRunning("CALL sp_xac_nhan_nhan_chuyen_kho", maPhieu);
+      try {
+        const res = await api("/api/warehouse/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ maPhieu })
+        });
+        if (res.ok) {
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: "COMMIT",
+            txId: maPhieu,
+            operation: "CALL sp_xac_nhan_nhan_chuyen_kho",
+            outcome: "Xác nhận nhận hàng HOAN_TAT",
+            sqlState: "00000",
+            messageHtml: `<strong>COMMIT thành công:</strong> Phiếu <code>${esc(maPhieu)}</code> đã cập nhật <code>HOAN_TAT</code> và cộng tồn vào kho đích.`,
+            summaryText: `COMMIT xác nhận nhận phiếu ${maPhieu}`,
+            changes: [],
+            changesUnavailableNote: "API xác nhận chuyển kho không trả về tồn kho trước/sau; hãy kiểm tra trực tiếp trong Bảng tồn kho."
+          });
+        } else {
+          const errMsg = cleanErr(res.errorMessage || res.error || "Không thể xác nhận phiếu.");
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: "FAILED",
+            txId: maPhieu,
+            operation: "CALL sp_xac_nhan_nhan_chuyen_kho",
+            outcome: "Thất bại",
+            sqlState: res.sqlState || "—",
+            messageHtml: `<strong>FAILED:</strong> ${esc(errMsg)}`,
+            summaryText: `FAILED xác nhận ${maPhieu}: ${errMsg}`,
+            changes: []
+          });
+          showAlert("err", "Không thể xác nhận chuyển kho", esc(errMsg));
+        }
+      } catch (err) {
+        updateTxMonitor({
+          time: nowTimeStr(),
+          status: "FAILED",
+          txId: maPhieu,
+          operation: "CALL sp_xac_nhan_nhan_chuyen_kho",
+          outcome: "Lỗi kết nối API",
+          sqlState: "—",
+          messageHtml: `<strong>FAILED:</strong> ${esc(err.message)}`,
+          summaryText: `FAILED: ${err.message}`,
+          changes: []
+        });
+      }
+      await loadOverview();
+    }
+
+    /* Return & Receive Forms and Tables (Tab 1) */
+    function openReturnForOrder(maDonHang) {
+      setTab1Mode("return");
+      const sel = document.getElementById("retOrder");
+      if (sel) {
+        sel.value = maDonHang;
+        onReturnOrderChange();
+      }
+      document.getElementById("paneReturnAction").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function populateReturnSelects(data) {
+      const sel = document.getElementById("retOrder");
+      if (!sel) return;
+      const orders = (data.orders || []).slice().sort((a, b) => {
+        const aOk = (a.trangthai === "HOAN_TAT" && Number(a.songaytungaydat || 0) <= 14) ? 0
+                  : (a.trangthai === "HOAN_TAT" ? 1 : 2);
+        const bOk = (b.trangthai === "HOAN_TAT" && Number(b.songaytungaydat || 0) <= 14) ? 0
+                  : (b.trangthai === "HOAN_TAT" ? 1 : 2);
+        if (aOk !== bOk) return aOk - bOk;
+        return String(a.madonhang).localeCompare(String(b.madonhang));
+      });
+      const prev = sel.value;
+      sel.innerHTML = orders.map(o => {
+        const soNgay = Number(o.songaytungaydat || 0);
+        const tag = o.trangthai !== "HOAN_TAT"
+          ? ` [${o.trangthai} - Trigger 7 sẽ chặn]`
+          : (soNgay > 14 ? ` [${soNgay} ngày - Quá 14 ngày]` : ` [${soNgay} ngày - Hợp lệ ≤14d]`);
+        return `<option value="${esc(o.madonhang)}">${esc(o.madonhang)} — ${esc(o.tenkhachhang)} (${esc(o.makho)})${esc(tag)}</option>`;
+      }).join("");
+      if (prev && orders.some(o => o.madonhang === prev)) sel.value = prev;
+      else if (orders.length) sel.value = orders[0].madonhang;
+      onReturnOrderChange();
+    }
+
+    function onReturnOrderChange() {
+      const ordId = document.getElementById("retOrder")?.value || "";
+      const orders = (STATE.overview && STATE.overview.orders) || [];
+      const orderObj = orders.find(o => o.madonhang === ordId);
+      const badge = document.getElementById("retOrderStatusBadge");
+      if (badge && orderObj) {
+        const soNgay = Number(orderObj.songaytungaydat || 0);
+        const expired = orderObj.trangthai === "HOAN_TAT" && soNgay > 14;
+        badge.className = "badge " + (expired ? "b-red" : statusBadge(orderObj.trangthai));
+        badge.textContent = `${orderObj.makho} · ${orderObj.trangthai} · ${soNgay} ngày${expired ? " (>14d)" : ""}`;
+      }
+
+      const details = ((STATE.overview && STATE.overview.orderDetails) || []).filter(d => d.madonhang === ordId);
+      const ctdhSel = document.getElementById("retCtdh");
+      if (!ctdhSel) return;
+      const prev = ctdhSel.value;
+      if (details.length === 0) {
+        ctdhSel.innerHTML = `<option value="">Đơn hàng chưa có chi tiết CTSP</option>`;
+      } else {
+        ctdhSel.innerHTML = details.map(d => {
+          const conLai = Math.max(0, Number(d.soluong) - Number(d.datra || 0));
+          return `<option value="${esc(d.mactdonhang)}">${esc(d.mactdonhang)} · ${esc(d.machitietsp)} — ${esc(d.tensanpham)} (${esc(d.mausac)} · S${esc(d.size)}) · Mua ${d.soluong}, Còn ${conLai}</option>`;
+        }).join("");
+        if (prev && details.some(d => d.mactdonhang === prev)) ctdhSel.value = prev;
+      }
+      onReturnCtdhChange();
+    }
+
+    function getSelectedReturnDetail() {
+      const ctdhId = document.getElementById("retCtdh")?.value || "";
+      const details = (STATE.overview && STATE.overview.orderDetails) || [];
+      return details.find(d => d.mactdonhang === ctdhId) || null;
+    }
+
+    function onReturnCtdhChange() {
+      const infoEl = document.getElementById("retLineInfo");
+      const d = getSelectedReturnDetail();
+      if (infoEl) {
+        if (!d) {
+          infoEl.innerHTML = `<span style="color:var(--muted);">Chưa có dòng CTSP nào cho đơn này.</span>`;
+        } else {
+          const mua = Number(d.soluong);
+          const daTra = Number(d.datra || 0);
+          const conLai = Math.max(0, mua - daTra);
+          const conBadge = conLai > 0 ? "b-green" : "b-red";
+          infoEl.innerHTML = `
+            <div class="resolved-info">
+              <span class="code-pill">${esc(d.machitietsp)}</span>
+              <code>${esc(d.sku)}</code>
+              <span>Mua: <strong>${mua}</strong> &middot; Đã trả: <strong>${daTra}</strong> &middot; Có thể trả: <span class="badge ${conBadge}">${conLai}</span></span>
+              <span>Đơn giá thực sau CK: <strong>${fmtMoney(d.dongiathucte)}</strong> (CK ${Number(d.chietkhau || 0)}%)</span>
+            </div>`;
+        }
+      }
+      populateReturnSwapVariants();
+      onReturnTypeChange();
+    }
+
+    function onReturnTypeChange() {
+      const hinhThuc = document.getElementById("retType")?.value || "HOAN_TIEN";
+      const swapWrap = document.getElementById("retSwapWrap");
+      if (swapWrap) swapWrap.style.display = (hinhThuc === "DOI_HANG") ? "" : "none";
+      updateReturnSummary();
+    }
+
+    function populateReturnSwapVariants() {
+      const sel = document.getElementById("retSwapCtsp");
+      if (!sel) return;
+      const d = getSelectedReturnDetail();
+      const allowAny = Boolean(document.getElementById("retAllowAnySp")?.checked);
+      const ordId = document.getElementById("retOrder")?.value || "";
+      const orderObj = ((STATE.overview && STATE.overview.orders) || []).find(o => o.madonhang === ordId);
+      const maKho = orderObj ? orderObj.makho : "KHO01";
+      const variants = (STATE.overview && STATE.overview.variants) || [];
+      const list = allowAny || !d
+        ? variants
+        : variants.filter(v => v.masanpham === d.masanpham);
+      const prev = sel.value;
+      sel.innerHTML = list.map(v => {
+        const inv = findInventoryRecord(maKho, v.machitietsp);
+        const kd = inv ? inv.soluongkhadung : 0;
+        const diffSp = d && v.masanpham !== d.masanpham ? " [KHÁC SP - Trigger 7 sẽ chặn]" : "";
+        return `<option value="${esc(v.machitietsp)}">${esc(v.machitietsp)} — ${esc(v.tensanpham)} (${esc(v.mausac)} · S${esc(v.size)}) · Khả dụng ${esc(maKho)}: ${kd}${esc(diffSp)}</option>`;
+      }).join("");
+      if (prev && list.some(v => v.machitietsp === prev)) {
+        sel.value = prev;
+      } else if (d) {
+        const alt = list.find(v => v.machitietsp !== d.machitietsp);
+        if (alt) sel.value = alt.machitietsp;
+      }
+      updateReturnSummary();
+    }
+
+    function updateReturnSummary() {
+      const bar = document.getElementById("retSummaryBar");
+      if (!bar) return;
+      const d = getSelectedReturnDetail();
+      const hinhThuc = document.getElementById("retType")?.value || "HOAN_TIEN";
+      const tinhTrang = document.getElementById("retCond")?.value || "CON_MOI";
+      const qty = Math.max(0, Number(document.getElementById("retQty")?.value || 0));
+      const ordId = document.getElementById("retOrder")?.value || "";
+      const orderObj = ((STATE.overview && STATE.overview.orders) || []).find(o => o.madonhang === ordId);
+      const maKho = orderObj ? orderObj.makho : "KHO01";
+
+      if (!d) {
+        bar.innerHTML = `<span style="color:var(--muted);">Chưa chọn được dòng CTSP hợp lệ.</span>`;
+        return;
+      }
+      const soNgay = orderObj ? Number(orderObj.songaytungaydat || 0) : 0;
+      const isOver14Days = orderObj && orderObj.trangthai === "HOAN_TAT" && soNgay > 14;
+      const expiredNote = isOver14Days
+        ? `<div style="width:100%;color:var(--danger);font-weight:600;margin-top:4px;">Cảnh báo: Đơn đã quá ${soNgay} ngày (&gt; 14 ngày) nên sẽ bị chặn hoàn/trả. Để thử hoàn hợp lệ, hãy tạo đơn mới rồi bấm Hoàn tất.</div>`
+        : "";
+
+      if (hinhThuc === "HOAN_TIEN") {
+        const rate = tinhTrang === "DA_SU_DUNG" ? 0.5 : 1.0;
+        const rateLabel = tinhTrang === "DA_SU_DUNG" ? "50% (Đã sử dụng)" : "100% (Còn mới)";
+        const tienHoan = Math.round(qty * Number(d.dongiathucte || 0) * rate * 100) / 100;
+        const nhapText = tinhTrang === "CON_MOI"
+          ? `Lập <code>PHIEUNHAPKHO</code> (+${qty} vào ${esc(maKho)})`
+          : "Không nhập lại kho bán (DA_SU_DUNG)";
+        bar.innerHTML = `
+          <div class="resolved-info">
+            <span class="badge ${tinhTrang === 'DA_SU_DUNG' ? 'b-amber' : 'b-green'}">HOAN_TIEN · ${rateLabel}</span>
+            <span>Hoàn ước tính: <strong>${fmtMoney(tienHoan)}</strong> (trừ Doanh thu thuần, không sửa DONHANG gốc)</span>
+            <span>&middot; ${nhapText}</span>
+          </div>${expiredNote}`;
+      } else {
+        const swapId = document.getElementById("retSwapCtsp")?.value || "—";
+        const blockedUsed = tinhTrang === "DA_SU_DUNG"
+          ? `<div style="width:100%;color:var(--danger);font-weight:600;margin-top:4px;">Cảnh báo: CTSP đã qua sử dụng (DA_SU_DUNG) không được đổi hàng (DOI_HANG), chỉ hoàn 50%.</div>`
+          : "";
+        const nhapText = tinhTrang === "CON_MOI" ? `Nhập ${esc(d.machitietsp)} (+${qty}) + ` : "";
+        bar.innerHTML = `
+          <div class="resolved-info">
+            <span class="badge b-blue">DOI_HANG</span>
+            <span>Đơn giá hoàn: <strong>0 đ</strong> (giữ nguyên doanh thu)</span>
+            <span>&middot; ${nhapText}Xuất đổi <code>${esc(swapId)}</code> (−${qty} tại ${esc(maKho)})</span>
+          </div>${blockedUsed}${expiredNote}`;
+      }
+    }
+
+    async function submitReturn() {
+      const maDonHang = document.getElementById("retOrder")?.value || "";
+      const maCtDonHang = document.getElementById("retCtdh")?.value || "";
+      const soLuongTra = Number(document.getElementById("retQty")?.value || 0);
+      const hinhThucXuLy = document.getElementById("retType")?.value || "HOAN_TIEN";
+      const tinhTrangSanPham = document.getElementById("retCond")?.value || "CON_MOI";
+      const maChiTietSPDoi = hinhThucXuLy === "DOI_HANG" ? (document.getElementById("retSwapCtsp")?.value || "") : null;
+      const lyDo = (document.getElementById("retReason")?.value || "").trim() || "Khách trả/đổi hàng từ Web Demo";
+
+      if (!maDonHang || !maCtDonHang) {
+        showAlert("err", "Thiếu thông tin", "Vui lòng chọn đơn hàng và dòng CTSP cần trả.");
+        return;
+      }
+      if (!Number.isInteger(soLuongTra) || soLuongTra <= 0) {
+        showAlert("err", "Dữ liệu không hợp lệ", "Số lượng trả phải là số nguyên dương.");
+        return;
+      }
+
+      setTxMonitorRunning("TX PHIEUTRAHANG + Trigger 7", maDonHang);
+      try {
+        const res = await api("/api/returns/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ maDonHang, maCtDonHang, soLuongTra, tinhTrangSanPham, hinhThucXuLy, maChiTietSPDoi, lyDo })
+        });
+        const changes = (Array.isArray(res.itemChanges) ? res.itemChanges : []).map(ch => ({
+          maCtsp: ch.maCtsp,
+          maKho: res.maKho || "KHO01",
+          beforeAvail: ch.beforeAvail,
+          afterAvail: ch.afterAvail
+        }));
+        if (res.ok) {
+          const extraSlips = [res.maPhieuNhap, res.maPhieuXuat].filter(Boolean).join(", ");
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: "COMMIT",
+            txId: res.maPhieuTra,
+            operation: "INSERT PHIEUTRAHANG / CHITIET_TRAHANG",
+            outcome: hinhThucXuLy === "HOAN_TIEN"
+              ? `Hoàn ${res.refundRatePercent ?? 100}% = ${fmtMoney(res.tongTienHoan)} (${res.maCtspGoc} ×${soLuongTra})`
+              : `Đổi ${res.maCtspGoc} → ${res.maCtspDoi} (×${soLuongTra})`,
+            sqlState: "00000",
+            messageHtml: `<strong>COMMIT thành công:</strong> Đã lập phiếu trả <code>${esc(res.maPhieuTra)}</code> cho <code>${esc(maDonHang)}</code>${extraSlips ? ` kèm phiếu kho <code>${esc(extraSlips)}</code>` : ""}.`,
+            summaryText: `COMMIT phiếu trả ${res.maPhieuTra} (${hinhThucXuLy}, ${res.maCtspGoc} ×${soLuongTra})`,
+            changes
+          });
+        } else {
+          const errMsg = cleanErr(res.errorMessage || res.error || "Phiếu trả hàng bị CSDL chặn.");
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: res.rolledBack ? "ROLLBACK" : "FAILED",
+            txId: res.maPhieuTra || "Đã hoàn tác",
+            operation: "INSERT PHIEUTRAHANG / CHITIET_TRAHANG",
+            outcome: "Bị Trigger 7 / ràng buộc chặn & Đã ROLLBACK",
+            sqlState: res.sqlState || "—",
+            messageHtml: `<strong>ROLLBACK:</strong> ${esc(errMsg)}`,
+            summaryText: `ROLLBACK phiếu trả (${res.sqlState || "ERR"}): ${errMsg}`,
+            changes
+          });
+          showAlert("err", "Phiếu trả hàng bị chặn & ROLLBACK", `<strong>Lý do từ PostgreSQL:</strong> ${esc(errMsg)}<br><strong>SQLState:</strong> <code>${esc(res.sqlState || "—")}</code>`);
+        }
+      } catch (err) {
+        updateTxMonitor({
+          time: nowTimeStr(),
+          status: "FAILED",
+          txId: "—",
+          operation: "INSERT PHIEUTRAHANG",
+          outcome: "Lỗi kết nối API",
+          sqlState: "—",
+          messageHtml: `<strong>FAILED:</strong> ${esc(err.message)}`,
+          summaryText: `FAILED: ${err.message}`,
+          changes: []
+        });
+      }
+      await loadOverview();
+      await runDynamicReport();
+    }
+
+    function populateReceiveSelects(data) {
+      fillSelect("recNcc", data.suppliers || [], s => s.mancc, s => `${s.mancc} — ${s.tenncc}`);
+      fillSelect("recKho", data.warehouses || [], w => w.makho, w => `${w.makho} — ${w.tenkho} (${w.trangthai})`, "KHO01");
+      populateReceiveVariants();
+    }
+
+    function populateReceiveVariants() {
+      const sel = document.getElementById("recCtsp");
+      if (!sel) return;
+      const maNcc = document.getElementById("recNcc")?.value || "";
+      const onlyCat = Boolean(document.getElementById("recOnlyCatalog")?.checked);
+      const variants = (STATE.overview && STATE.overview.variants) || [];
+      const catalog = (STATE.overview && STATE.overview.supplierCatalog) || [];
+      const catByCtsp = new Map();
+      for (const c of catalog) {
+        if (c.mancc === maNcc) catByCtsp.set(c.machitietsp, c);
+      }
+      const list = onlyCat ? variants.filter(v => catByCtsp.has(v.machitietsp)) : variants;
+      const prev = sel.value;
+      sel.innerHTML = list.map(v => {
+        const cc = catByCtsp.get(v.machitietsp);
+        const tag = cc
+          ? `Giá NCC: ${fmtMoney(cc.gianhap)} · Giao ${cc.thoigiangiaohangdukien ?? "?"} ngày`
+          : "Ngoài danh mục CUNGCAP";
+        return `<option value="${esc(v.machitietsp)}">${esc(v.machitietsp)} — ${esc(v.tensanpham)} (${esc(v.mausac)} · S${esc(v.size)} · ${esc(v.sku)}) · ${esc(tag)}</option>`;
+      }).join("");
+      if (prev && list.some(v => v.machitietsp === prev)) sel.value = prev;
+      else if (list.length) sel.value = list[0].machitietsp;
+      onReceiveVariantPriceSync();
+    }
+
+    function onReceiveNccOrVariantChange() {
+      if (document.getElementById("recOnlyCatalog")?.checked) {
+        populateReceiveVariants();
+      } else {
+        onReceiveVariantPriceSync();
+      }
+    }
+
+    function onReceiveVariantPriceSync() {
+      const maNcc = document.getElementById("recNcc")?.value || "";
+      const maCtsp = document.getElementById("recCtsp")?.value || "";
+      const catalog = (STATE.overview && STATE.overview.supplierCatalog) || [];
+      const cc = catalog.find(c => c.mancc === maNcc && c.machitietsp === maCtsp);
+      const v = getVariantMap().get(maCtsp);
+      const priceEl = document.getElementById("recPrice");
+      if (priceEl) {
+        priceEl.value = cc ? Number(cc.gianhap) : (v ? Math.round(Number(v.gianiemyet || 0) * 0.7) : 1000000);
+      }
+      updateReceiveSummary();
+    }
+
+    function updateReceiveSummary() {
+      const khoDich = document.getElementById("recKho")?.value || "KHO01";
+      const maNcc = document.getElementById("recNcc")?.value || "";
+      const maCtsp = document.getElementById("recCtsp")?.value || "";
+      const qty = Math.max(0, Number(document.getElementById("recQty")?.value || 0));
+      const price = Math.max(0, Number(document.getElementById("recPrice")?.value || 0));
+
+      const khoBadge = document.getElementById("recKhoStatusBadge");
+      const khoObj = ((STATE.overview && STATE.overview.warehouses) || []).find(w => w.makho === khoDich);
+      if (khoBadge && khoObj) {
+        khoBadge.className = "badge " + (khoObj.trangthai === "HOAT_DONG" ? "b-green" : "b-red");
+        khoBadge.textContent = `${khoObj.makho} · ${khoObj.trangthai}`;
+      }
+
+      const bar = document.getElementById("recSummaryBar");
+      if (!bar) return;
+      const inv = findInventoryRecord(khoDich, maCtsp);
+      const curAvail = inv ? Number(inv.soluongkhadung) : 0;
+      const catalog = (STATE.overview && STATE.overview.supplierCatalog) || [];
+      const cc = catalog.find(c => c.mancc === maNcc && c.machitietsp === maCtsp);
+      const contractInfo = cc
+        ? `<span class="badge b-green">Có hợp đồng CUNGCAP</span>`
+        : `<span class="badge b-gray">Nhập bổ sung</span>`;
+      bar.innerHTML = `
+        <div class="resolved-info">
+          <span class="code-pill">${esc(maCtsp || "—")}</span>
+          ${contractInfo}
+          <span>Tồn ${esc(khoDich)}: <strong>${curAvail}</strong> &rarr; <strong>${curAvail + qty}</strong></span>
+          <span>Tổng giá trị nhập: <strong>${fmtMoney(qty * price)}</strong></span>
+        </div>`;
+    }
+
+    async function submitReceive() {
+      const maNcc = document.getElementById("recNcc")?.value || "";
+      const khoDich = document.getElementById("recKho")?.value || "";
+      const maCtsp = document.getElementById("recCtsp")?.value || "";
+      const soLuong = Number(document.getElementById("recQty")?.value || 0);
+      const donGia = Number(document.getElementById("recPrice")?.value || 0);
+      const ghiChu = (document.getElementById("recNote")?.value || "").trim() || "Nhập hàng từ nhà cung cấp qua Web Demo";
+
+      if (!maNcc || !khoDich || !maCtsp) {
+        showAlert("err", "Thiếu thông tin", "Vui lòng chọn đầy đủ Nhà cung cấp, Kho nhận và Biến thể.");
+        return;
+      }
+      if (!Number.isInteger(soLuong) || soLuong <= 0) {
+        showAlert("err", "Dữ liệu không hợp lệ", "Số lượng nhận phải là số nguyên dương.");
+        return;
+      }
+      if (!Number.isFinite(donGia) || donGia < 0) {
+        showAlert("err", "Dữ liệu không hợp lệ", "Đơn giá nhập không được âm.");
+        return;
+      }
+
+      setTxMonitorRunning("INSERT PHIEUNHAPKHO", maCtsp);
+      try {
+        const res = await api("/api/warehouse/receive", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ maNcc, khoDich, maCtsp, soLuong, donGia, ghiChu })
+        });
+        const changes = [{
+          maCtsp,
+          maKho: khoDich,
+          beforeAvail: res.beforeAvail ?? 0,
+          afterAvail: res.afterAvail ?? 0
+        }];
+        if (res.ok) {
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: "COMMIT",
+            txId: res.maPhieu,
+            operation: "INSERT PHIEUKHO + PHIEUNHAPKHO",
+            outcome: `Nhập +${soLuong} ${maCtsp} vào ${khoDich} (${fmtMoney(res.tongGiaTri)})`,
+            sqlState: "00000",
+            messageHtml: `<strong>COMMIT thành công:</strong> Đã lập phiếu nhận <code>${esc(res.maPhieu)}</code> từ <code>${esc(maNcc)}</code> vào <strong>${esc(khoDich)}</strong>.`,
+            summaryText: `COMMIT phiếu nhập ${res.maPhieu} (${maNcc} -> ${khoDich}, ${maCtsp} +${soLuong})`,
+            changes
+          });
+        } else {
+          const errMsg = cleanErr(res.errorMessage || res.error || "Không thể lập phiếu nhận hàng.");
+          updateTxMonitor({
+            time: nowTimeStr(),
+            status: res.rolledBack ? "ROLLBACK" : "FAILED",
+            txId: res.maPhieu || "Đã hoàn tác",
+            operation: "INSERT PHIEUKHO + PHIEUNHAPKHO",
+            outcome: "Bị chặn & Đã ROLLBACK",
+            sqlState: res.sqlState || "—",
+            messageHtml: `<strong>ROLLBACK:</strong> ${esc(errMsg)}`,
+            summaryText: `ROLLBACK nhập kho (${res.sqlState || "ERR"}): ${errMsg}`,
+            changes
+          });
+          showAlert("err", "Phiếu nhận hàng bị chặn & ROLLBACK", `<strong>Lý do từ PostgreSQL:</strong> ${esc(errMsg)}<br><strong>SQLState:</strong> <code>${esc(res.sqlState || "—")}</code>`);
+        }
+      } catch (err) {
+        updateTxMonitor({
+          time: nowTimeStr(),
+          status: "FAILED",
+          txId: "—",
+          operation: "INSERT PHIEUNHAPKHO",
+          outcome: "Lỗi kết nối API",
+          sqlState: "—",
+          messageHtml: `<strong>FAILED:</strong> ${esc(err.message)}`,
+          summaryText: `FAILED: ${err.message}`,
+          changes: []
+        });
+      }
+      await loadOverview();
+    }
+
+    function renderReturns() {
+      const list = (STATE.overview && STATE.overview.returns) || [];
+      const stFilter = document.getElementById("retStatusFilter")?.value || "ALL";
+      const filtered = list.filter(r => stFilter === "ALL" || r.trangthai === stFilter);
+      const tbody = document.getElementById("retBody");
+      if (!tbody) return;
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);">Không có phiếu trả hàng nào khớp bộ lọc.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = filtered.map(r => {
+        const isOpen = STATE.expandedReturnId === r.maphieutra;
+        const mainRow = `<tr>
+          <td><strong>${esc(r.maphieutra)}</strong></td>
+          <td><code>${esc(r.madonhang)}</code></td>
+          <td><span class="badge ${statusBadge(r.trangthai)}">${esc(r.trangthai)}</span></td>
+          <td style="max-width:230px;white-space:normal;">${esc(r.chitiettomtat || "—")}</td>
+          <td class="num"><strong>${fmtMoney(r.tongtienhoan)}</strong></td>
+          <td class="nowrap">
+            <button type="button" class="btn btn-secondary btn-xs" onclick="toggleReturnDetail('${esc(r.maphieutra)}')">${isOpen ? "Ẩn" : "Chi tiết"}</button>
+          </td>
+        </tr>`;
+        if (!isOpen) return mainRow;
+        const detailRow = `<tr class="order-detail-row">
+          <td colspan="6">
+            <div><strong>Khách:</strong> ${esc(r.tenkhachhang)} &middot; <strong>Kho xử lý:</strong> ${esc(r.makho)} &middot; <strong>Ngày tiếp nhận:</strong> ${esc(r.ngaytiepnhan)}</div>
+            <div><strong>Lý do:</strong> ${esc(r.lydo)}</div>
+            ${r.ghichu ? `<div><strong>Ghi chú:</strong> ${esc(r.ghichu)}</div>` : ""}
+          </td>
+        </tr>`;
+        return mainRow + detailRow;
+      }).join("");
+    }
+
+    function toggleReturnDetail(maPhieuTra) {
+      STATE.expandedReturnId = STATE.expandedReturnId === maPhieuTra ? null : maPhieuTra;
+      renderReturns();
+    }
+
+    function renderReceives() {
+      const list = (STATE.overview && STATE.overview.receives) || [];
+      const srcFilter = document.getElementById("recSourceFilter")?.value || "ALL";
+      const filtered = list.filter(r => {
+        if (srcFilter === "NCC") return Boolean(r.mancc);
+        if (srcFilter === "RETURN") return Boolean(r.maphieutra);
+        return true;
+      });
+      const tbody = document.getElementById("recBody");
+      if (!tbody) return;
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);">Không có phiếu nhận hàng nào khớp bộ lọc.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = filtered.map(r => {
+        const isOpen = STATE.expandedReceiveId === r.maphieu;
+        const srcHtml = r.mancc
+          ? `<span class="badge b-blue">${esc(r.mancc)}</span> ${esc(r.tenncc)}`
+          : `<span class="badge b-amber">Trả hàng</span> <code>${esc(r.maphieutra)}</code>`;
+        const mainRow = `<tr>
+          <td><strong>${esc(r.maphieu)}</strong></td>
+          <td style="white-space:normal;">${srcHtml}</td>
+          <td><strong>${esc(r.khodich)}</strong></td>
+          <td class="num"><strong>${Number(r.tongsoluong || 0)}</strong></td>
+          <td class="num">${fmtMoney(r.tonggiatrinhap)}</td>
+          <td class="nowrap">
+            <button type="button" class="btn btn-secondary btn-xs" onclick="toggleReceiveDetail('${esc(r.maphieu)}')">${isOpen ? "Ẩn" : "Chi tiết"}</button>
+          </td>
+        </tr>`;
+        if (!isOpen) return mainRow;
+        const detailRow = `<tr class="order-detail-row">
+          <td colspan="6">
+            <div><strong>Ngày lập:</strong> ${esc(r.ngaylap)} &middot; <strong>Trạng thái:</strong> ${esc(r.trangthai)}</div>
+            <div><strong>Chi tiết biến thể:</strong> ${esc(r.chitiettomtat || "Không có")}</div>
+            ${r.ghichu ? `<div><strong>Ghi chú:</strong> ${esc(r.ghichu)}</div>` : ""}
+          </td>
+        </tr>`;
+        return mainRow + detailRow;
+      }).join("");
+    }
+
+    function toggleReceiveDetail(maPhieu) {
+      STATE.expandedReceiveId = STATE.expandedReceiveId === maPhieu ? null : maPhieu;
+      renderReceives();
+    }
+
+    /* Concurrent Transactions (Tab 2) */
+    let txPollTimer = null;
+    let txPollInFlight = false;
+    const txBusyLocal = { A: false, B: false };
+
+    function txStateMeta(s) {
+      const st = s.state || "IDLE";
+      if (st === "HOLDING_LOCK") return { cls: "holding", badge: "b-amber", label: `GIỮ KHÓA · PID ${s.backendPid}` };
+      if (st === "EXECUTING") return { cls: "waiting", badge: "b-blue", label: `ĐANG CHỜ KHÓA (${(s.waitMs / 1000).toFixed(1)}s) · PID ${s.backendPid || "..."}` };
+      if (st === "COMMITTED") return { cls: "committed", badge: "b-green", label: "ĐÃ COMMIT" };
+      if (st === "BLOCKED_ROLLBACK") return { cls: "blocked", badge: "b-red", label: "BỊ CHẶN & ROLLBACK" };
+      if (st === "ROLLED_BACK") return { cls: "blocked", badge: "b-gray", label: "ĐÃ ROLLBACK" };
+      return { cls: "", badge: "b-gray", label: "CHƯA MỞ" };
+    }
+
+    function renderTxSession(s) {
+      const slot = s.slot;
+      const meta = txStateMeta(s);
+      document.getElementById("txPanel" + slot).className = "tx-panel " + meta.cls;
+
+      const badge = document.getElementById("txBadge" + slot);
+      badge.className = "badge " + meta.badge;
+      badge.textContent = meta.label;
+
+      const box = document.getElementById("txStatus" + slot);
+      box.className = "tx-status-box " + meta.cls;
+      box.textContent = cleanErr(s.message || "");
+
+      const isActive = s.state === "HOLDING_LOCK" || s.state === "EXECUTING" || txBusyLocal[slot];
+      const isHolding = s.state === "HOLDING_LOCK";
+      document.getElementById("txBtnStart" + slot).disabled = isActive;
+      document.getElementById("txBtnCommit" + slot).disabled = !isHolding;
+      document.getElementById("txBtnRollback" + slot).disabled = !isHolding;
+
+      const logs = (s.logs || []).slice().reverse();
+      document.getElementById("txLogs" + slot).innerHTML = logs.map(l => `<li>${esc(cleanErr(l))}</li>`).join("");
+    }
+
+    function renderTxWatchAndLocks(res) {
+      const ws = res.watchedStock;
+      const watchEl = document.getElementById("txWatchBar");
+      if (ws && ws.exists) {
+        watchEl.innerHTML = `
+          <div class="stat-box"><div class="k">Mặt hàng đang theo dõi (đã COMMIT)</div><div class="v" style="font-size:14px;">${esc(ws.maKho)} · ${esc(ws.maCtsp)} — ${esc(ws.tenSanPham)}</div></div>
+          <div class="stat-box"><div class="k">Tồn thực tế</div><div class="v">${ws.thucTe} đôi</div></div>
+          <div class="stat-box"><div class="k">Đã giữ (COMMIT)</div><div class="v">${ws.daGiu} đôi</div></div>
+          <div class="stat-box"><div class="k">Khả dụng còn</div><div class="v" style="color:${ws.khaDung <= 0 ? 'var(--danger)' : 'var(--success)'};">${ws.khaDung} đôi</div></div>`;
+      } else {
+        watchEl.innerHTML = `<div class="stat-box"><div class="k">Tồn kho</div><div class="v" style="font-size:14px;">Chưa có tồn tại kho/sản phẩm đã chọn</div></div>`;
+      }
+
+      const body = document.getElementById("txLocksBody");
+      const locks = res.pgLocks || [];
+      if (locks.length === 0) {
+        body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);">Chưa có phiên giao dịch nào đang mở kết nối tới PostgreSQL.</td></tr>`;
+      } else {
+        body.innerHTML = locks.map(r => {
+          const isWait = r.waitInfo && r.waitInfo !== "NONE";
+          return `<tr>
+            <td><strong>${esc(r.slot)}</strong></td>
+            <td><code>${esc(r.pid)}</code></td>
+            <td><span class="badge ${isWait ? 'b-red' : 'b-amber'}">${esc(r.state)}</span></td>
+            <td><span class="badge ${isWait ? 'b-red' : 'b-green'}">${esc(r.waitInfo)}</span></td>
+            <td><strong>${esc(r.blockedBy)}</strong></td>
+            <td style="white-space:normal;"><code>${esc(r.locks)}</code></td>
+          </tr>`;
+        }).join("");
+      }
+    }
+
+    async function refreshTxStatus() {
+      if (txPollInFlight) return;
+      txPollInFlight = true;
+      try {
+        const kho = document.getElementById("txAKho").value || "KHO01";
+        const ctsp = document.getElementById("txACtsp").value || "CTSP18";
+        const res = await api(`/api/demo/tx/status?maKho=${encodeURIComponent(kho)}&maCtsp=${encodeURIComponent(ctsp)}`);
+        if (!res.ok) return;
+        renderTxSession(res.sessionA);
+        renderTxSession(res.sessionB);
+        renderTxWatchAndLocks(res);
+
+        const needPoll = txBusyLocal.A || txBusyLocal.B
+          || res.sessionA.state === "HOLDING_LOCK" || res.sessionA.state === "EXECUTING"
+          || res.sessionB.state === "HOLDING_LOCK" || res.sessionB.state === "EXECUTING";
+        if (needPoll && !txPollTimer) {
+          txPollTimer = setInterval(refreshTxStatus, 250);
+        } else if (!needPoll && txPollTimer) {
+          clearInterval(txPollTimer);
+          txPollTimer = null;
+        }
+      } finally {
+        txPollInFlight = false;
+      }
+    }
+
+    async function txStart(slot) {
+      if (txBusyLocal[slot]) return;
+      txBusyLocal[slot] = true;
+      if (!txPollTimer) txPollTimer = setInterval(refreshTxStatus, 250);
+      document.getElementById("txBtnStart" + slot).disabled = true;
+      try {
+        const payload = {
+          slot,
+          maKh: document.getElementById(`tx${slot}Kh`).value,
+          maKho: document.getElementById(`tx${slot}Kho`).value,
+          maCtsp: document.getElementById(`tx${slot}Ctsp`).value,
+          soLuong: Number(document.getElementById(`tx${slot}Qty`).value)
+        };
+        const res = await api("/api/demo/tx/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok && res.errorMessage) {
+          showAlert("err", "Lỗi mở phiên " + slot, esc(cleanErr(res.errorMessage)));
+        }
+      } finally {
+        txBusyLocal[slot] = false;
+        await refreshTxStatus();
+        await loadOverview();
+      }
+    }
+
+    async function txFinish(slot, action) {
+      const endpoint = action === "commit" ? "/api/demo/tx/commit" : "/api/demo/tx/rollback";
+      const res = await api(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slot })
+      });
+      if (!res.ok && res.errorMessage) {
+        showAlert("err", "Lỗi phiên " + slot, esc(cleanErr(res.errorMessage)));
+      }
+      await refreshTxStatus();
+      await loadOverview();
+    }
+
+    async function txResetBoth() {
+      const res = await api("/api/demo/tx/reset", { method: "POST" });
+      if (!res.ok && res.errorMessage) {
+        showAlert("err", "Lỗi đóng phiên", esc(cleanErr(res.errorMessage)));
+      }
+      const autoEl = document.getElementById("autoConcResult");
+      if (autoEl) autoEl.innerHTML = "";
+      await refreshTxStatus();
+      await loadOverview();
+    }
+
+    function syncTxBFromA() {
+      const syncEl = document.getElementById("txSyncTarget");
+      if (!syncEl || !syncEl.checked) return;
+      const kA = document.getElementById("txAKho").value;
+      const cA = document.getElementById("txACtsp").value;
+      if (kA) document.getElementById("txBKho").value = kA;
+      if (cA) document.getElementById("txBCtsp").value = cA;
+    }
+
+    function onTxATargetChange() {
+      syncTxBFromA();
+      refreshTxStatus();
+    }
+
+    async function txStartBoth() {
+      syncTxBFromA();
+      await Promise.all([txStart("A"), txStart("B")]);
+    }
+
+    async function runAutoConcurrencyDemo() {
+      const btn = document.getElementById("txBtnAutoConc");
+      const box = document.getElementById("autoConcResult");
+      btn.disabled = true;
+      btn.textContent = "Đang chạy 2 luồng Thread-A & Thread-B...";
+      try {
+        await api("/api/demo/tx/reset", { method: "POST" });
+        const res = await api("/api/demo/concurrency", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ holdMs: 1200 })
+        });
+        if (!res.ok) {
+          showAlert("err", "Lỗi chạy concurrency", esc(cleanErr(res.error || "Không chạy được kịch bản đồng thời.")));
+          return;
+        }
+        const items = (res.timeline || []).map(ev => {
+          const cls = ev.status === "COMMIT" ? "ok" : (ev.status === "BLOCKED_ROLLBACK" ? "err" : "");
+          return `<div class="timeline-item ${cls}">
+            <div style="min-width:110px;font-family:var(--mono);font-size:12px;"><strong>+${ev.elapsedMs} ms</strong><br><span class="badge b-gray">${esc(ev.status)}</span></div>
+            <div><strong>${esc(ev.actor)}</strong><div>${esc(cleanErr(ev.detail))}</div></div>
+          </div>`;
+        }).join("");
+        box.innerHTML = `
+          <div class="alert show ok">
+            <strong>Kết quả kiểm thử 2 luồng song song (KHO01 · CTSP18):</strong>
+            Tồn khả dụng ban đầu = <strong>${res.initialAvail}</strong> &middot;
+            <code>DH_CONC_A</code>: <strong>${res.hasOrderA ? "COMMIT" : "FAIL"}</strong> &middot;
+            <code>DH_CONC_B</code>: <strong>${res.hasOrderB ? "THÀNH CÔNG" : "BỊ CHẶN & ROLLBACK"}</strong>
+            (chờ khóa <strong>${res.threadBWaitMs} ms</strong>) &middot; Tồn khả dụng cuối = <strong>${res.finalAvail}</strong>.
+          </div>
+          ${items}`;
+        await refreshTxStatus();
+        await loadOverview();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Chạy kịch bản tự động (Thread A ↔ B)";
+      }
+    }
+
+    /* SQL Reports & 12 Queries (Tab 3) */
+    let dynReqSeq = 0;
+
+    async function runDynamicReport() {
+      const reqId = ++dynReqSeq;
+      const rawFrom = (document.getElementById("dynFrom").value || "").trim();
+      const rawTo = (document.getElementById("dynTo").value || "").trim();
+      const hasBothDates = Boolean(rawFrom && rawTo);
+      const hasOnlyOneDate = Boolean(rawFrom) !== Boolean(rawTo);
+      const dateReversed = hasBothDates && rawFrom > rawTo;
+
+      const hintEl = document.getElementById("dynDateHint");
+      if (hasOnlyOneDate) {
+        hintEl.className = "alert show info";
+        hintEl.innerHTML = "Chưa lọc theo ngày: cần nhập đủ cả <strong>Từ ngày</strong> và <strong>Đến ngày</strong>.";
+      } else if (dateReversed) {
+        hintEl.className = "alert show err";
+        hintEl.innerHTML = "Khoảng ngày không hợp lệ: <strong>Từ ngày</strong> đang lớn hơn <strong>Đến ngày</strong>.";
+      } else {
+        hintEl.className = "alert";
+        hintEl.innerHTML = "";
+      }
+
+      const p = new URLSearchParams({
+        maKho: document.getElementById("dynKho").value,
+        maDanhMuc: document.getElementById("dynDm").value,
+        tuNgay: hasBothDates ? rawFrom : "",
+        denNgay: hasBothDates ? rawTo : ""
+      });
+      const paramEl = document.getElementById("dynParamsPreview");
+      if (paramEl) {
+        const argKho = p.get("maKho") ? `'${p.get("maKho")}'` : "NULL";
+        const argFrom = p.get("tuNgay") ? `'${p.get("tuNgay")} 00:00:00'` : "NULL";
+        const argTo = p.get("denNgay") ? `'${p.get("denNgay")} 23:59:59'` : "NULL";
+        const argDm = p.get("maDanhMuc") ? `'${p.get("maDanhMuc")}'` : "NULL";
+        paramEl.innerHTML = `Lời gọi hàm: <code>SELECT * FROM fn_bao_cao_doanh_thu_dong(${esc(argKho)}, ${esc(argFrom)}, ${esc(argTo)}, ${esc(argDm)});</code>`;
+      }
+      try {
+        const res = await api("/api/reports/dynamic?" + p.toString());
+        if (reqId !== dynReqSeq) return;
+        if (!res.ok) {
+          document.getElementById("dynResult").innerHTML = `<div class="alert show err">${esc(cleanErr(res.error || "Lỗi chạy báo cáo động"))}</div>`;
+          return;
+        }
+        const s = res.revenueSummary;
+        const summaryHtml = s ? `
+          <div class="stat-grid" style="margin-bottom:10px;">
+            <div class="stat-box">
+              <div class="k">Doanh thu gộp (fn_bao_cao_doanh_thu_dong)</div>
+              <div class="v">${fmtMoney(s.grossRevenue)}</div>
+              <div class="d">Tổng bán: ${s.grossQty} đôi</div>
+            </div>
+            <div class="stat-box">
+              <div class="k">Tiền hoàn trả (PHIEUTRAHANG &middot; HOAN_TIEN)</div>
+              <div class="v" style="color:var(--danger);">&minus;${fmtMoney(s.refundAmount)}</div>
+              <div class="d">Số lượng hoàn tiền: ${s.refundQty} đôi (DOI_HANG không trừ)</div>
+            </div>
+            <div class="stat-box">
+              <div class="k">Doanh thu thuần thực nhận</div>
+              <div class="v" style="color:var(--success);">${fmtMoney(s.netRevenue)}</div>
+              <div class="d">Số lượng bán thuần: ${s.netQty} đôi</div>
+            </div>
+          </div>` : "";
+        document.getElementById("dynResult").innerHTML = summaryHtml + renderDynamicTable(res.result);
+      } catch (e) {
+        if (reqId !== dynReqSeq) return;
+        document.getElementById("dynResult").innerHTML = `<div class="alert show err">${esc(e.message)}</div>`;
+      }
+    }
+
+    async function loadSqlQueryCatalog(defaultIndex = 12) {
+      const res = await api("/api/queries/catalog");
+      if (!res.ok || !res.catalog) return;
+      STATE.sqlCatalog = res.catalog;
+      const sel = document.getElementById("qSelect");
+      sel.innerHTML = res.catalog.map(c => `<option value="${c.index}">${esc(c.title)}</option>`).join("");
+      sel.value = res.catalog.some(c => c.index === defaultIndex) ? defaultIndex : res.defaultIndex;
+      previewSelectedSqlQuery();
+    }
+
+    function previewSelectedSqlQuery() {
+      const sel = document.getElementById("qSelect");
+      const idx = Number(sel.value || 12);
+      const item = (STATE.sqlCatalog || []).find(c => Number(c.index) === idx);
+      document.getElementById("sqlCodePreview").innerHTML = item
+        ? `<div><strong>Mã SQL xem trước:</strong><pre class="code-box">${esc(item.sql)}</pre></div>`
+        : "";
+      document.getElementById("sqlQueryResult").innerHTML =
+        `<p class="sub" style="margin:0;">Bấm <strong>Chạy truy vấn</strong> để thực thi câu lệnh trên PostgreSQL 17.</p>`;
+    }
+
+    async function runSelectedSqlQuery(idxOverride) {
+      const sel = document.getElementById("qSelect");
+      const idx = idxOverride || sel.value || 12;
+      if (sel && idxOverride) sel.value = String(idxOverride);
+      const btn = document.getElementById("btnRunSqlQuery");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Đang chạy...";
+      }
+      try {
+        const res = await api("/api/queries/run?index=" + idx);
+        if (!res.ok) {
+          document.getElementById("sqlQueryResult").innerHTML = `<div class="alert show err">${esc(cleanErr(res.error || "Lỗi chạy truy vấn"))}</div>`;
+          return;
+        }
+        if (res.catalog && STATE.sqlCatalog.length === 0) {
+          STATE.sqlCatalog = res.catalog;
+          sel.innerHTML = res.catalog.map(c => `<option value="${c.index}">${esc(c.title)}</option>`).join("");
+          sel.value = res.selectedIndex;
+        }
+        document.getElementById("sqlCodePreview").innerHTML =
+          `<div><strong>Mã SQL đã thực thi:</strong><pre class="code-box">${esc(res.sql)}</pre></div>`;
+        document.getElementById("sqlQueryResult").innerHTML = `
+          <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+            <strong>${esc(res.title)}</strong>
+            <span class="badge b-blue">${res.result.rowCount} dòng kết quả</span>
+          </div>
+          ${renderDynamicTable(res.result)}`;
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Chạy truy vấn";
+        }
+      }
+    }
+
+    function renderDynamicTable(tbl) {
+      if (!tbl || !tbl.columns) return "";
+      const head = tbl.columns.map(c => {
+        const isNum = /(sl|so|tong|doanhthu|tienhoan|gia|chietkhau|thanhtien|xephang|cap|nhanh)/i.test(c);
+        return `<th class="${isNum ? 'num' : ''}">${esc(c)}</th>`;
+      }).join("");
+      const body = tbl.rows.length === 0
+        ? `<tr><td colspan="${tbl.columns.length}" style="text-align:center;color:var(--muted);">Không có dữ liệu khớp bộ lọc</td></tr>`
+        : tbl.rows.map(row => `<tr>${row.map(cell => {
+            const isNum = typeof cell === "number";
+            return `<td class="${isNum ? 'num' : ''}">${esc(cell === null ? "NULL" : cell)}</td>`;
+          }).join("")}</tr>`).join("");
+      return `<div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+    }
+
+    /* Index Performance Benchmark (Tab 4) */
+    async function runLiveBenchmark() {
+      const btn = document.getElementById("btnBench");
+      btn.disabled = true;
+      btn.textContent = "Đang đo EXPLAIN Trước & Sau Index (~15 giây)...";
+      try {
+        const res = await api("/api/benchmark/run", { method: "POST" });
+        if (!res.ok) {
+          showAlert("err", "Lỗi benchmark", esc(cleanErr(res.error)));
+          return;
+        }
+        const summaryRows = res.comparisons.map(c => {
+          const sameSeq = c.beforeScan === "Seq Scan" && c.afterScan === "Seq Scan";
+          const speedBadge = sameSeq
+            ? `<span class="badge b-gray">Tương đương (~${c.speedup}x)</span>`
+            : `<span class="badge b-green">${c.speedup}x</span>`;
+          return `<tr>
+            <td><strong>${esc(c.code)}</strong></td>
+            <td style="min-width:220px;">${esc(c.label)}</td>
+            <td class="nowrap"><code>${esc(c.beforeScan)}</code> &rarr; <code>${esc(c.afterScan)}</code></td>
+            <td class="num">${c.beforeBuffers} &rarr; <strong>${c.afterBuffers}</strong></td>
+            <td class="num">${c.beforeTimeMs} ms &rarr; <strong>${c.afterTimeMs} ms</strong></td>
+            <td class="num">${speedBadge}</td>
+          </tr>`;
+        }).join("");
+
+        const maxTime = Math.max(...res.comparisons.map(c => Math.max(c.beforeTimeMs, c.afterTimeMs)), 1);
+        const bars = res.comparisons.map(c => {
+          const wB = Math.max(2, Math.round((c.beforeTimeMs / maxTime) * 100));
+          const wA = Math.max(2, Math.round((c.afterTimeMs / maxTime) * 100));
+          return `<div class="bar-row">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+              <strong>${esc(c.code)}: ${esc(c.label)}</strong>
+              <span class="nowrap">Buffers: <strong>${c.beforeBuffers} &rarr; ${c.afterBuffers}</strong></span>
+            </div>
+            <div style="font-size:12px;">Trước Index (${esc(c.beforeScan)}): <strong>${c.beforeTimeMs} ms</strong></div>
+            <div class="bar-track"><div class="bar-fill-before" style="width:${wB}%"></div></div>
+            <div style="font-size:12px;">Sau Index (${esc(c.afterScan)}): <strong>${c.afterTimeMs} ms</strong></div>
+            <div class="bar-track"><div class="bar-fill-after" style="width:${wA}%"></div></div>
+            <details>
+              <summary>Xem chi tiết EXPLAIN (ANALYZE, BUFFERS)</summary>
+              <pre class="code-box">--- TRƯỚC INDEX ---\n${esc(c.beforePlan)}\n\n--- SAU INDEX ---\n${esc(c.afterPlan)}</pre>
+            </details>
+          </div>`;
+        }).join("");
+
+        const indexSizesHtml = Array.isArray(res.indexSizes) && res.indexSizes.length
+          ? `<details style="margin-top:12px;">
+              <summary>Xem dung lượng ${res.indexSizes.length} Index bổ sung trên PostgreSQL</summary>
+              <div class="table-wrap" style="margin-top:8px;">
+                <table>
+                  <thead><tr><th>Bảng</th><th>Tên Index</th><th class="num">Dung lượng</th></tr></thead>
+                  <tbody>${res.indexSizes.map(ix => `<tr><td><strong>${esc(ix.tablename)}</strong></td><td><code>${esc(ix.indexname)}</code></td><td class="num">${esc(ix.index_size)}</td></tr>`).join("")}</tbody>
+                </table>
+              </div>
+            </details>`
+          : "";
+
+        document.getElementById("benchResult").innerHTML = `
+          <div class="alert show info">Quy mô đo: <strong>${esc(res.scale)}</strong> (đã xóa sạch dữ liệu tạm và khôi phục 18 Index).</div>
+          <div class="table-wrap" style="margin-bottom:16px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Kịch bản truy vấn</th>
+                  <th>Chiến lược quét (Trước &rarr; Sau)</th>
+                  <th class="num">Buffers</th>
+                  <th class="num">Thời gian</th>
+                  <th class="num">Cải thiện</th>
+                </tr>
+              </thead>
+              <tbody>${summaryRows}</tbody>
+            </table>
+          </div>
+          ${bars}
+          ${indexSizesHtml}`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Chạy benchmark trên PostgreSQL 17";
+      }
+    }
+
+    /* ObjectDB (Tab 5) */
+    async function runLiveOodb() {
+      const btn = document.getElementById("btnOodb");
+      btn.disabled = true;
+      btn.textContent = "Đang chạy thực nghiệm ObjectDB...";
+      try {
+        const res = await api("/api/oodb/run", { method: "POST" });
+        if (!res.ok) {
+          showAlert("err", "Lỗi chạy ObjectDB", esc(cleanErr(res.error)));
+          return;
+        }
+        STATE.oodb = res;
+        const c = res.counts;
+        const p = res.polymorphism;
+
+        const queryOptions = (res.queries || []).map((q, idx) =>
+          `<option value="${idx}">${esc(q.id)} — ${esc(q.title)}</option>`
+        ).join("");
+
+        const classOptions = (res.entityCatalog || []).map((cEntry, idx) =>
+          `<option value="${idx}">${esc(cEntry.title)} (${(cEntry.objects || []).length} đối tượng)</option>`
+        ).join("");
+
+        document.getElementById("oodbResult").innerHTML = `
+          <div class="stat-grid">
+            <div class="stat-box">
+              <div class="k">Dữ liệu đối tượng (<code>${esc(res.dbFile || "target/csdl_giay.odb")}</code>)</div>
+              <div class="v" style="font-size:14px;">${c.khachHang} KH &middot; ${c.sanPham} SP &middot; ${c.chiTietSP} CTSP &middot; ${c.donHang} ĐH &middot; ${c.chiTietDonHang} CTDH &middot; ${c.phieuXuatKho} PXK</div>
+              <div class="d">${esc(res.engine || "ObjectDB 2.9.1")}</div>
+            </div>
+            <div class="stat-box">
+              <div class="k">Định danh đối tượng (OID duy nhất)</div>
+              <div class="v" style="font-size:14px;color:${res.oidSameInstance ? "var(--success)" : "var(--danger)"};">${res.oidSameInstance ? "Khớp cùng 1 thực thể DH01 (==)" : "Khác tham chiếu"}</div>
+              <div class="d"><code>em.find()</code> (${esc(res.oidFindRef || "")}) &equiv; <code>SELECT</code> (${esc(res.oidQueryRef || "")})</div>
+            </div>
+            <div class="stat-box">
+              <div class="k">Kế thừa &amp; Đa hình (<code>PhieuXuatKho extends PhieuKho</code>)</div>
+              <div class="v" style="font-size:14px;color:var(--success);">${p.pxCount ?? p.totalPhieuKho} / ${p.totalPhieuKho} thực thể đúng lớp con</div>
+              <div class="d">${p.deliveryCount ?? 6} phiếu xuất đơn &middot; ${p.exchangeCount ?? 1} phiếu xuất đổi hàng</div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title"><span>Đối chiếu truy vấn OQL chuẩn (ODMG 3.0) &harr; JPQL thực thi (ObjectDB)</span></div>
+            <div class="btn-row" style="margin-bottom:10px;">
+              <select id="oodbQSel" style="flex:1 1 540px;max-width:780px;" onchange="previewOodbQuery(this.value)">${queryOptions}</select>
+              <button type="button" class="btn btn-primary" onclick="runSelectedOodbQuery()">Chạy truy vấn OODB</button>
+            </div>
+            <div id="oodbQueryCode"></div>
+            <div id="oodbQueryResult" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="form-section" style="margin-bottom:0;">
+            <div class="form-section-title"><span>Kiểm chứng phương thức OOP đóng gói trên 7 lớp Entity</span></div>
+            <div class="form-grid-3" style="margin-bottom:10px;align-items:end;">
+              <div>
+                <label for="oodbClsSel">1. Chọn lớp Entity</label>
+                <select id="oodbClsSel" onchange="onOodbClassChange()">${classOptions}</select>
+              </div>
+              <div>
+                <label for="oodbObjSel">2. Chọn đối tượng</label>
+                <select id="oodbObjSel" onchange="previewOodbEntityMethods()"></select>
+              </div>
+              <div>
+                <button type="button" class="btn btn-primary" onclick="runSelectedOodbEntityMethods()">Gọi phương thức OOP</button>
+              </div>
+            </div>
+            <div id="oodbEntityPanel"></div>
+          </div>`;
+        previewOodbQuery(0);
+        onOodbClassChange();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Chạy thực nghiệm ObjectDB";
+      }
+    }
+
+    function previewOodbQuery(idx) {
+      const q = (STATE.oodb && STATE.oodb.queries) ? STATE.oodb.queries[Number(idx)] : null;
+      if (!q) return;
+      document.getElementById("oodbQueryCode").innerHTML = `
+        <div style="font-size:12.5px;color:var(--text-secondary);margin-bottom:8px;"><strong>Kỹ thuật:</strong> ${esc(q.technique || "")}</div>
+        <div class="grid-2" style="margin-bottom:10px;">
+          <div><strong>OQL chuẩn (ODMG 3.0):</strong><pre class="code-box">${esc(q.oql)}</pre></div>
+          <div><strong>JPQL thực thi (ObjectDB):</strong><pre class="code-box">${esc(q.jpql)}</pre></div>
+        </div>`;
+      document.getElementById("oodbQueryResult").innerHTML =
+        `<p class="sub" style="margin:0;">Bấm <strong>Chạy truy vấn OODB</strong> để xem bảng kết quả.</p>`;
+    }
+
+    function runSelectedOodbQuery() {
+      const sel = document.getElementById("oodbQSel");
+      const idx = sel ? Number(sel.value) : 0;
+      const q = (STATE.oodb && STATE.oodb.queries) ? STATE.oodb.queries[idx] : null;
+      if (!q) return;
+      document.getElementById("oodbQueryResult").innerHTML = `
+        <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <strong>${esc(q.id)} — ${esc(q.title)}</strong>
+          <span class="badge b-blue">${q.rowCount} dòng</span>
+          ${q.parityNote ? `<span class="badge b-green">${esc(q.parityNote)}</span>` : ""}
+        </div>
+        ${renderDynamicTable({ columns: q.columns, rows: q.rows })}`;
+    }
+
+    function onOodbClassChange() {
+      const catalog = (STATE.oodb && STATE.oodb.entityCatalog) ? STATE.oodb.entityCatalog : [];
+      const clsSel = document.getElementById("oodbClsSel");
+      const objSel = document.getElementById("oodbObjSel");
+      if (!clsSel || !objSel || catalog.length === 0) return;
+      const cls = catalog[Number(clsSel.value)] || catalog[0];
+      const objs = cls.objects || [];
+      objSel.innerHTML = objs.map((o, i) => `<option value="${i}">${esc(o.label)}</option>`).join("");
+      previewOodbEntityMethods();
+    }
+
+    function previewOodbEntityMethods() {
+      renderOodbEntityPanel(false);
+    }
+
+    function runSelectedOodbEntityMethods() {
+      renderOodbEntityPanel(true);
+    }
+
+    function renderOodbEntityPanel(executed) {
+      const panel = document.getElementById("oodbEntityPanel");
+      const catalog = (STATE.oodb && STATE.oodb.entityCatalog) ? STATE.oodb.entityCatalog : [];
+      const clsSel = document.getElementById("oodbClsSel");
+      const objSel = document.getElementById("oodbObjSel");
+      if (!panel || !clsSel || !objSel || catalog.length === 0) return;
+      const cls = catalog[Number(clsSel.value)] || catalog[0];
+      const obj = (cls.objects || [])[Number(objSel.value)] || (cls.objects || [])[0];
+      if (!obj) {
+        panel.innerHTML = "";
+        return;
+      }
+      const rows = (obj.methods || []).map(m => `<tr>
+        <td><code>${esc(m.signature)}</code></td>
+        <td>${esc(m.description)}</td>
+        <td>${executed
+          ? `<span class="badge b-green">${esc(m.returnValue)}</span>`
+          : `<span style="color:var(--muted);">Chưa gọi — bấm "Gọi phương thức OOP"</span>`}</td>
+      </tr>`).join("");
+      panel.innerHTML = `
+        <div class="stat-box" style="margin-bottom:10px;background:var(--surface);">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <strong>${esc(obj.label)}</strong>
+            <span class="badge ${executed ? 'b-green' : 'b-gray'}">${executed ? `Đã gọi ${obj.methods.length} phương thức` : "Sẵn sàng kiểm chứng"}</span>
+          </div>
+          <div class="d">${esc(obj.stateSummary)}</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Phương thức OOP</th><th>Mô tả nghiệp vụ</th><th>Kết quả trả về</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+    }
+
+    function requestResetBaseline() {
+      showConfirm(
+        "Khôi phục dữ liệu mẫu",
+        "Thao tác này sẽ đóng các phiên giao dịch đồng thời đang mở, xóa các đơn hàng, phiếu trả và phiếu kho thử nghiệm phát sinh từ web, đưa CSDL về trạng thái mẫu ban đầu.",
+        "Khôi phục ngay",
+        false,
+        resetBaseline
+      );
+    }
+
+    async function resetBaseline() {
+      const res = await api("/api/reset", { method: "POST" });
+      if (res.ok) {
+        STATE.orderCart = [];
+        STATE.expandedOrderId = null;
+        STATE.expandedTransferId = null;
+        STATE.expandedReturnId = null;
+        STATE.expandedReceiveId = null;
+        updateTxMonitor({
+          time: nowTimeStr(),
+          status: "COMMIT",
+          txId: "RESET",
+          operation: "POST /api/reset",
+          outcome: "Đã khôi phục dữ liệu mẫu",
+          sqlState: "00000",
+          messageHtml: `<strong>Đã khôi phục:</strong> CSDL trở về ${res.baseline.donHang} đơn hàng, ${res.baseline.tonKho} dòng tồn kho.`,
+          summaryText: `Khôi phục dữ liệu mẫu (${res.baseline.donHang} đơn, ${res.baseline.tonKho} tồn kho)`,
+          changes: [],
+          changesUnavailableNote: "Dữ liệu đã được khôi phục về trạng thái gốc."
+        });
+      } else {
+        showAlert("err", "Lỗi khôi phục dữ liệu", esc(cleanErr(res.error)));
+      }
+      await loadOverview();
+      await refreshTxStatus();
+      await runDynamicReport();
+    }
+
+    let closeBeaconSent = false;
+    const tabChannel = (typeof BroadcastChannel !== "undefined") ? new BroadcastChannel("csdl_web_demo_tabs") : null;
+    if (tabChannel) {
+      tabChannel.onmessage = (ev) => {
+        if (ev.data === "TAB_CLOSING" && isOpenedViaWebDemo) {
+          fetch(API_BASE + "/api/ping", { method: "GET", keepalive: true }).catch(() => { });
+        }
+      };
+    }
+    function notifyWebClosing() {
+      if (!isOpenedViaWebDemo || closeBeaconSent) return;
+      closeBeaconSent = true;
+      if (tabChannel) {
+        try { tabChannel.postMessage("TAB_CLOSING"); } catch (_) { }
+      }
+      const url = API_BASE + "/api/shutdown?auto=1";
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(url, "");
+      } else {
+        fetch(url, { method: "POST", keepalive: true }).catch(() => { });
+      }
+    }
+    window.addEventListener("pageshow", () => {
+      closeBeaconSent = false;
+      if (isOpenedViaWebDemo) {
+        fetch(API_BASE + "/api/ping", { method: "GET" }).catch(() => { });
+      }
+    });
+    window.addEventListener("pagehide", notifyWebClosing);
+    window.addEventListener("beforeunload", notifyWebClosing);
+
+    (async function init() {
+      if (isOpenedViaWebDemo) {
+        setTimeout(() => fetch(API_BASE + "/api/ping", { method: "GET" }).catch(() => { }), 450);
+      }
+      await loadOverview();
+      await runDynamicReport();
+      await loadSqlQueryCatalog(12);
+    })();
+  </script>
+</body>
+
+</html>

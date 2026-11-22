@@ -1,0 +1,206 @@
+// =============================================================================
+// ĐỒ ÁN CƠ SỞ DỮ LIỆU NÂNG CAO - ĐỀ TÀI 2
+// Hệ thống Quản lý Bán hàng & Tồn kho Đa kho (Chuyên ngành Giày)
+// PHÂN HỆ CSDL HƯỚNG ĐỐI TƯỢNG (OODB) THEO CHUẨN ODMG 3.0
+// File: 01_odl_schema.odl
+// Mô tả: Lược đồ đặc tả hướng đối tượng (ODL - Object Definition Language)
+//        gồm 07 lớp thuộc phân hệ Bán hàng - Sản phẩm - Xuất kho.
+//
+// 5 ĐẶC TRƯNG CỐT LÕI ĐƯỢC THỂ HIỆN:
+//   1. OID (Object Identifier): Mọi đối tượng đều có OID ngầm định do hệ thống quản lý,
+//      đồng thời có thuộc tính khóa tự nhiên (key).
+//   2. Kế thừa (Inheritance): PhieuXuatKho kế thừa trực tiếp từ PhieuKho (extends).
+//   3. Tập hợp (Collection): set<DonHang>, list<ChiTietDonHang>, set<ChiTietSP>.
+//   4. Mối quan hệ hai chiều (Bidirectional Relationship with Inverse):
+//      thay thế hoàn toàn khóa ngoại quan hệ bằng liên kết tham chiếu hai chiều tự động duy trì.
+//   5. Phương thức nghiệp vụ (Business Methods): đóng gói hành vi tính toán trực tiếp vào lớp.
+// =============================================================================
+
+module BanHangTonKhoOODB {
+
+    // -------------------------------------------------------------------------
+    // Khai báo trước (Forward declarations) để giải quyết phụ thuộc vòng
+    // -------------------------------------------------------------------------
+    class KhachHang;
+    class DonHang;
+    class ChiTietDonHang;
+    class SanPham;
+    class ChiTietSP;
+    class PhieuKho;
+    class PhieuXuatKho;
+
+    // =========================================================================
+    // 1. LỚP KHÁCH HÀNG
+    // =========================================================================
+    class KhachHang (
+        extent dsKhachHang,
+        key maKH
+    ) {
+        // Thuộc tính cơ bản
+        attribute string            maKH;
+        attribute string            hoTen;
+        attribute string            sdt;
+        attribute string            email;
+        attribute string            diaChi;
+        attribute date              ngayDangKy;
+
+        // Mối quan hệ 1:N với Đơn hàng (1 Khách hàng có tập hợp nhiều Đơn hàng)
+        relationship set<DonHang>   dsDonHang
+            inverse DonHang::khachHang;
+
+        // Phương thức nghiệp vụ đóng gói trong đối tượng
+        float   tinhTongChiTieu();           // Tính tổng tiền các đơn đã HOAN_TAT
+        integer demDonHoanTat();             // Đếm số đơn giao thành công
+        boolean coDonChuaHoanTat();          // Kiểm tra khách còn đơn đang treo không
+    };
+
+    // =========================================================================
+    // 2. LỚP ĐƠN HÀNG
+    // =========================================================================
+    class DonHang (
+        extent dsDonHang,
+        key maDonHang
+    ) {
+        // Thuộc tính cơ bản
+        attribute string            maDonHang;
+        attribute timestamp         ngayDat;
+        attribute string            trangThai;           // CHO_XAC_NHAN, DANG_XU_LY, DANG_GIAO, HOAN_TAT, DA_HUY...
+        attribute string            diaChiGiaoHang;
+        attribute string            phuongThucThanhToan; // COD, CHUYEN_KHOAN, THE, VI_DIEN_TU, TIEN_MAT
+        attribute string            ghiChu;
+        attribute string            maKho;
+
+        // Mối quan hệ N:1 với Khách hàng
+        relationship KhachHang      khachHang
+            inverse KhachHang::dsDonHang;
+
+        // Mối quan hệ 1:N với Chi tiết đơn (Dùng LIST để bảo toàn thứ tự dòng)
+        relationship list<ChiTietDonHang> dsChiTiet
+            inverse ChiTietDonHang::donHang;
+
+        // Mối quan hệ 1:1 tùy chọn với Phiếu xuất kho
+        relationship PhieuXuatKho   phieuXuat
+            inverse PhieuXuatKho::donHang;
+
+        // Phương thức nghiệp vụ
+        float   tinhTongTien();              // Tổng thành tiền sau chiết khấu của đơn hàng
+        integer tinhTongSoLuong();           // Tổng số lượng sản phẩm trong đơn
+        boolean duocPhepXuatKho();           // Kiểm tra đơn ở trạng thái cho phép xuất kho
+        boolean duocPhepXoaHuy();            // Kiểm tra điều kiện hủy đơn
+    };
+
+    // =========================================================================
+    // 3. LỚP CHI TIẾT ĐƠN HÀNG
+    // =========================================================================
+    class ChiTietDonHang (
+        extent dsChiTietDonHang,
+        key maCTDonHang
+    ) {
+        // Thuộc tính cơ bản
+        attribute string            maCTDonHang;
+        attribute integer           soLuong;
+        attribute float             donGiaBan;
+        attribute float             chietKhau;   // Tỷ lệ phần trăm từ 0.00 đến 100.00
+
+        // Mối quan hệ N:1 với Đơn hàng cha
+        relationship DonHang        donHang
+            inverse DonHang::dsChiTiet;
+
+        // Mối quan hệ N:1 với Biến thể sản phẩm (ChiTietSP)
+        relationship ChiTietSP      bienTheSP
+            inverse ChiTietSP::dsChiTietDonHang;
+
+        // Phương thức nghiệp vụ
+        float   tinhThanhTien();             // soLuong * donGiaBan * (1 - chietKhau / 100)
+    };
+
+    // =========================================================================
+    // 4. LỚP SẢN PHẨM (Mẫu giày / Model)
+    // =========================================================================
+    class SanPham (
+        extent dsSanPham,
+        key maSanPham
+    ) {
+        // Thuộc tính cơ bản
+        attribute string            maSanPham;
+        attribute string            tenSanPham;
+        attribute string            moTa;
+        attribute float             giaNiemYet;
+        attribute string            trangThai;   // DANG_KINH_DOANH, TAM_NGUNG, NGUNG_KINH_DOANH
+        attribute string            maDanhMuc;
+        attribute string            maThuongHieu;
+
+        // Mối quan hệ 1:N với các biến thể (size/màu)
+        relationship set<ChiTietSP> dsBienThe
+            inverse ChiTietSP::sanPham;
+
+        // Phương thức nghiệp vụ
+        integer demSoBienTheDangBan();       // Đếm số biến thể đang có trạng thái DANG_BAN
+        boolean coTheDatHang();              // Kiểm tra xem mẫu giày còn mở bán hay không
+    };
+
+    // =========================================================================
+    // 5. LỚP BIẾN THỂ SẢN PHẨM (Chi tiết theo Size và Màu sắc)
+    // =========================================================================
+    class ChiTietSP (
+        extent dsChiTietSP,
+        key maChiTietSP
+    ) {
+        // Thuộc tính cơ bản
+        attribute string            maChiTietSP;
+        attribute string            sku;
+        attribute string            size;
+        attribute string            mauSac;
+        attribute string            trangThai;   // DANG_BAN, TAM_NGUNG, NGUNG_BAN
+
+        // Mối quan hệ N:1 với Sản phẩm mẫu
+        relationship SanPham        sanPham
+            inverse SanPham::dsBienThe;
+
+        // Mối quan hệ 1:N với các dòng đơn hàng đã đặt biến thể này
+        relationship set<ChiTietDonHang> dsChiTietDonHang
+            inverse ChiTietDonHang::bienTheSP;
+
+        // Phương thức nghiệp vụ
+        integer tinhTongSoLuongDaBan();      // Tổng số lượng đã đặt qua các đơn hàng
+    };
+
+    // =========================================================================
+    // 6. LỚP PHIẾU KHO (Lớp cha trừu tượng - Generalization Base Class)
+    // =========================================================================
+    class PhieuKho (
+        extent dsPhieuKho,
+        key maPhieu
+    ) {
+        // Thuộc tính chung cho mọi loại phiếu kho
+        attribute string            maPhieu;
+        attribute string            loaiPhieu;   // NHAP, XUAT, CHUYEN
+        attribute timestamp         ngayLap;
+        attribute string            trangThai;   // BAN_NHAP, DANG_XU_LY, DANG_VAN_CHUYEN, HOAN_TAT, DA_HUY
+        attribute string            ghiChu;
+
+        // Phương thức nghiệp vụ chung
+        boolean laPhieuHoanTat();            // Kiểm tra trạng thái = HOAN_TAT
+        boolean duocPhepChinhSua();          // Kiểm tra xem phiếu còn ở dạng BAN_NHAP không
+    };
+
+    // =========================================================================
+    // 7. LỚP PHIẾU XUẤT KHO (Lớp con chuyên biệt hóa kế thừa PhieuKho)
+    // =========================================================================
+    class PhieuXuatKho extends PhieuKho (
+        extent dsPhieuXuatKho
+    ) {
+        // Thuộc tính chuyên biệt của phiếu xuất kho
+        attribute string            khoNguon;
+        attribute string            maPhieuTra;  // Khác null nếu xuất hàng đổi trả
+
+        // Mối quan hệ 1:1 với Đơn hàng xuất bán
+        relationship DonHang        donHang
+            inverse DonHang::phieuXuat;
+
+        // Phương thức nghiệp vụ chuyên biệt
+        boolean laXuatGiaoDonHang();         // Kiểm tra xem phiếu có gắn với Đơn hàng hay không
+    };
+
+};
+

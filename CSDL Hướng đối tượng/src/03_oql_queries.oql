@@ -1,0 +1,254 @@
+// =============================================================================
+// ĐỒ ÁN CƠ SỞ DỮ LIỆU NÂNG CAO - ĐỀ TÀI 2
+// Hệ thống Quản lý Bán hàng & Tồn kho Đa kho (Chuyên ngành Giày)
+// PHÂN HỆ CSDL HƯỚNG ĐỐI TƯỢNG (OODB) THEO CHUẨN ODMG 3.0
+// File: 03_oql_queries.oql
+// Mô tả: Tập hợp 06 truy vấn OQL chuẩn ODMG kèm giải thích kỹ thuật và
+//        bảng kết quả mong đợi (khớp 100% với dữ liệu thực tế tại 02_insert_data.sql).
+//
+// DANH MỤC TRUY VẤN:
+//   - OQL 1: Path Expression (Điều hướng liên kết đối tượng không cần JOIN).
+//   - OQL 2: Duyệt Collection với lượng từ (Quantifier / EXISTS / IN).
+//   - OQL 3: Gọi phương thức nghiệp vụ trực tiếp trong truy vấn (Method Invocation).
+//   - OQL 4: Gom nhóm & Tính toán tổng hợp (GROUP BY, SUM, COUNT, ORDER BY).
+//   - OQL 5: Truy vấn trên phân cấp kế thừa (Inheritance & Polymorphism).
+//   - OQL 6: Chiếu cấu trúc lồng nhau (Nested Collection / Struct Projection).
+// =============================================================================
+
+
+// =============================================================================
+// TRUY VẤN OQL 1: ĐIỀU HƯỚNG ĐỐI TƯỢNG BẰNG BIỂU THỨC ĐƯỜNG DẪN (PATH EXPRESSION)
+// =============================================================================
+// Nghiệp vụ: Lấy thông tin các đơn hàng đang được xử lý, đang giao hoặc đã hoàn tất,
+//            kèm họ tên, số điện thoại của khách hàng để phục vụ theo dõi giao hàng.
+// Kỹ thuật OQL:
+//   - Sử dụng Path Expression dạng "dh.khachHang.hoTen" và "dh.khachHang.sdt".
+//   - Trong OODB, hệ thống tự động đi theo con trỏ tham chiếu OID của đối tượng KhachHang,
+//     hoàn toàn KHÔNG cần thực hiện phép JOIN hai bảng như trong CSDL quan hệ.
+//   - Trả về cấu trúc struct(...) với các thuộc tính cần chiếu.
+// -----------------------------------------------------------------------------
+
+select struct(
+    maDonHang:    dh.maDonHang,
+    ngayDat:      dh.ngayDat,
+    trangThai:    dh.trangThai,
+    tenKhachHang: dh.khachHang.hoTen,
+    sdt:          dh.khachHang.sdt,
+    diaChiGiao:   dh.diaChiGiaoHang
+)
+from dh in dsDonHang
+where dh.trangThai in set("DANG_XU_LY", "DANG_GIAO", "HOAN_TAT")
+order by dh.ngayDat desc;
+
+/*
+BẢNG KẾT QUẢ MONG ĐỢI (07 bản ghi):
++-----------+---------------------+------------+------------------+------------+--------------------------------------+
+| maDonHang |       ngayDat       | trangThai  |   tenKhachHang   |    sdt     |              diaChiGiao              |
++-----------+---------------------+------------+------------------+------------+--------------------------------------+
+| DH08      | 2026-11-09 09:15:00 | DANG_XU_LY | Hoàng Thùy Linh  | 0966777888 | 105 Kim Mã, Ba Đình, Hà Nội          |
+| DH06      | 2026-11-05 16:00:00 | DANG_GIAO  | Nguyễn Minh Tuấn | 0903111222 | 142 Cầu Giấy, Cầu Giấy, Hà Nội       |
+| DH05      | 2026-10-25 11:05:00 | HOAN_TAT   | Võ Ngọc Lan Anh  | 0909555666 | 19 Nguyễn Thị Minh Khai, Q.1, TP.HCM |
+| DH04      | 2026-10-18 14:20:00 | HOAN_TAT   | Phạm Quốc Bảo    | 0935444555 | 52 Bạch Đằng, Hải Châu, Đà Nẵng      |
+| DH03      | 2026-10-10 09:40:00 | HOAN_TAT   | Lê Hoàng Nam     | 0988333444 | 302 Cách Mạng Tháng 8, Q.3, TP.HCM   |
+| DH02      | 2026-09-25 15:30:00 | HOAN_TAT   | Trần Thị Thu Hà  | 0912222333 | 14 Trần Duy Hưng, Cầu Giấy, Hà Nội   |
+| DH01      | 2026-09-20 10:15:00 | HOAN_TAT   | Nguyễn Minh Tuấn | 0903111222 | 25 Lê Lợi, Q.1, TP.HCM               |
++-----------+---------------------+------------+------------------+------------+--------------------------------------+
+*/
+
+
+// =============================================================================
+// TRUY VẤN OQL 2: DUYỆT TẬP HỢP VỚI LƯỢNG TỪ TỒN TẠI (COLLECTION & EXISTS)
+// =============================================================================
+// Nghiệp vụ: Tìm tất cả các đơn hàng có đặt mua mẫu giày chạy bộ "Nike Pegasus 41" (SP01).
+// Kỹ thuật OQL:
+//   - Biểu diễn duyệt lồng tập hợp Collection: "exists ct in dh.dsChiTiet: ...".
+//   - Từ mỗi dòng chi tiết, điều hướng 2 chặng: "ct.bienTheSP.sanPham.maSanPham".
+//   - Khử trùng lặp kết quả bằng từ khóa "distinct".
+// -----------------------------------------------------------------------------
+
+select distinct struct(
+    maDonHang:    dh.maDonHang,
+    ngayDat:      dh.ngayDat,
+    trangThai:    dh.trangThai,
+    tenKhachHang: dh.khachHang.hoTen
+)
+from dh in dsDonHang
+where exists ct in dh.dsChiTiet : ct.bienTheSP.sanPham.maSanPham = "SP01"
+order by dh.maDonHang;
+
+/*
+BẢNG KẾT QUẢ MONG ĐỢI (06 bản ghi):
++-----------+---------------------+--------------+------------------+
+| maDonHang |       ngayDat       |  trangThai   |   tenKhachHang   |
++-----------+---------------------+--------------+------------------+
+| DH01      | 2026-09-20 10:15:00 | HOAN_TAT     | Nguyễn Minh Tuấn |
+| DH05      | 2026-10-25 11:05:00 | HOAN_TAT     | Võ Ngọc Lan Anh  |
+| DH07      | 2026-11-08 10:30:00 | DA_XAC_NHAN  | Đặng Văn Hùng    |
+| DH08      | 2026-11-09 09:15:00 | DANG_XU_LY   | Hoàng Thùy Linh  |
+| DH09      | 2026-11-10 08:45:00 | CHO_XAC_NHAN | Bùi Đức Thịnh    |
+| DH10      | 2026-11-02 17:20:00 | DA_HUY       | Lê Hoàng Nam     |
++-----------+---------------------+--------------+------------------+
+*/
+
+
+// =============================================================================
+// TRUY VẤN OQL 3: GỌI PHƯƠNG THỨC NGHIỆP VỤ ĐÓNG GÓI NỘI TẠI (METHOD INVOCATION)
+// =============================================================================
+// Nghiệp vụ: Tìm các đơn hàng giá trị cao (tổng tiền sau chiết khấu > 5,000,000 VNĐ)
+//            kèm tổng tiền và tổng số lượng sản phẩm.
+// Kỹ thuật OQL:
+//   - Gọi trực tiếp phương thức "dh.tinhTongTien()" ngay trong mệnh đề WHERE và SELECT.
+//   - Gọi phương thức "dh.tinhTongSoLuong()" để hiển thị số lượng sản phẩm.
+//   - Trong CSDL quan hệ, việc này bắt buộc phải JOIN bảng chi tiết, tính SUM(...) và HAVING.
+//     Trong OODB, phương thức được đóng gói sẵn trong đối tượng Đơn hàng, làm câu truy vấn
+//     trong sáng và chuẩn OOP.
+// -----------------------------------------------------------------------------
+
+select struct(
+    maDonHang:    dh.maDonHang,
+    tenKhachHang: dh.khachHang.hoTen,
+    tongTien:     dh.tinhTongTien(),
+    tongSoLuong:  dh.tinhTongSoLuong()
+)
+from dh in dsDonHang
+where dh.tinhTongTien() > 5000000.0
+order by dh.tinhTongTien() desc;
+
+/*
+BẢNG KẾT QUẢ MONG ĐỢI (07 bản ghi):
++-----------+------------------+----------------+-------------+
+| maDonHang |   tenKhachHang   |    tongTien    | tongSoLuong |
++-----------+------------------+----------------+-------------+
+| DH08      | Hoàng Thùy Linh  | 17,000,000.00  |           5 |
+| DH01      | Nguyễn Minh Tuấn | 16,240,000.00  |           5 |
+| DH07      | Đặng Văn Hùng    | 16,232,500.00  |           5 |
+| DH02      | Trần Thị Thu Hà  | 14,620,000.00  |           6 |
+| DH05      | Võ Ngọc Lan Anh  |  9,780,000.00  |           3 |
+| DH06      | Nguyễn Minh Tuấn |  8,450,000.00  |           3 |
+| DH04      | Phạm Quốc Bảo    |  6,200,000.00  |           4 |
++-----------+------------------+----------------+-------------+
+*/
+
+
+// =============================================================================
+// TRUY VẤN OQL 4: GOM NHÓM & HÀM TỔNG HỢP (GROUP BY & AGGREGATE FUNCTION)
+// =============================================================================
+// Nghiệp vụ: Thống kê tổng số tiền chi tiêu thực tế và số đơn đã hoàn tất
+//            của từng khách hàng, xếp hạng theo doanh số giảm dần.
+// Kỹ thuật OQL:
+//   - Sử dụng "group by" theo các thuộc tính định danh của khách hàng.
+//   - Trong OQL ODMG, sau "group by", biến "partition" đại diện cho tập hợp đối tượng
+//     trong nhóm hiện tại.
+//   - Dùng hàm tổng hợp "sum(...)" và "count(...)" trên tập partition.
+// -----------------------------------------------------------------------------
+
+select struct(
+    maKH:         kh.maKH,
+    hoTen:        kh.hoTen,
+    sdt:          kh.sdt,
+    soDonHoanTat: count(select dh from dh in partition where dh.trangThai = "HOAN_TAT"),
+    tongChiTieu:  sum(select ct.tinhThanhTien() from dh in partition, ct in dh.dsChiTiet where dh.trangThai = "HOAN_TAT")
+)
+from kh in dsKhachHang, dh in kh.dsDonHang
+where dh.trangThai = "HOAN_TAT"
+group by maKH: kh.maKH, hoTen: kh.hoTen, sdt: kh.sdt
+order by tongChiTieu desc;
+
+/*
+BẢNG KẾT QUẢ MONG ĐỢI (05 bản ghi):
++------+------------------+------------+--------------+---------------+
+| maKH |      hoTen       |    sdt     | soDonHoanTat |  tongChiTieu  |
++------+------------------+------------+--------------+---------------+
+| KH01 | Nguyễn Minh Tuấn | 0903111222 |            1 | 16,240,000.00 |
+| KH02 | Trần Thị Thu Hà  | 0912222333 |            1 | 14,620,000.00 |
+| KH05 | Võ Ngọc Lan Anh  | 0909555666 |            1 |  9,780,000.00 |
+| KH04 | Phạm Quốc Bảo    | 0935444555 |            1 |  6,200,000.00 |
+| KH03 | Lê Hoàng Nam     | 0988333444 |            1 |  4,465,000.00 |
++------+------------------+------------+--------------+---------------+
+*/
+
+
+// =============================================================================
+// TRUY VẤN OQL 5: TRUY VẤN TRÊN PHÂN CẤP KẾ THỪA (INHERITANCE & POLYMORPHISM)
+// =============================================================================
+// Nghiệp vụ: Lấy danh sách các phiếu xuất kho giao đơn hàng kèm thông tin
+//            kho xuất, mã đơn hàng và người nhận.
+// Kỹ thuật OQL:
+//   - PhieuXuatKho kế thừa PhieuKho.
+//   - Truy vấn trực tiếp trên extent của lớp con "dsPhieuXuatKho".
+//   - Truy cập trong suốt cả các thuộc tính kế thừa từ lớp cha ("px.maPhieu", "px.ngayLap", "px.trangThai")
+//     lẫn thuộc tính và liên kết riêng của lớp con ("px.khoNguon", "px.donHang.khachHang.hoTen").
+//   - Lọc các phiếu xuất có gắn với đơn hàng ("px.donHang != null").
+// -----------------------------------------------------------------------------
+
+select struct(
+    maPhieu:      px.maPhieu,
+    ngayLap:      px.ngayLap,
+    trangThai:    px.trangThai,
+    khoNguon:     px.khoNguon,
+    maDonHang:    px.donHang.maDonHang,
+    tenKhachHang: px.donHang.khachHang.hoTen
+)
+from px in dsPhieuXuatKho
+where px.donHang != null
+order by px.maPhieu;
+
+/*
+BẢNG KẾT QUẢ MONG ĐỢI (06 bản ghi):
++---------+---------------------+-----------+----------+-----------+------------------+
+| maPhieu |       ngayLap       | trangThai | khoNguon | maDonHang |   tenKhachHang   |
++---------+---------------------+-----------+----------+-----------+------------------+
+| PK07    | 2026-09-21 09:00:00 | HOAN_TAT  | KHO01    | DH01      | Nguyễn Minh Tuấn |
+| PK08    | 2026-09-26 09:30:00 | HOAN_TAT  | KHO02    | DH02      | Trần Thị Thu Hà  |
+| PK09    | 2026-10-11 08:45:00 | HOAN_TAT  | KHO01    | DH03      | Lê Hoàng Nam     |
+| PK10    | 2026-10-19 10:15:00 | HOAN_TAT  | KHO03    | DH04      | Phạm Quốc Bảo    |
+| PK11    | 2026-10-26 09:20:00 | HOAN_TAT  | KHO01    | DH05      | Võ Ngọc Lan Anh  |
+| PK12    | 2026-11-06 08:40:00 | HOAN_TAT  | KHO02    | DH06      | Nguyễn Minh Tuấn |
++---------+---------------------+-----------+----------+-----------+------------------+
+*/
+
+
+// =============================================================================
+// TRUY VẤN OQL 6: CHIẾU CẤU TRÚC LỒNG NHAU (NESTED COLLECTION / STRUCT PROJECTION)
+// =============================================================================
+// Nghiệp vụ: Báo cáo danh mục tất cả sản phẩm, đếm số lượng biến thể (size/màu)
+//            và tổng số lượng giày đã được khách đặt mua (không tính đơn hủy).
+// Kỹ thuật OQL:
+//   - Duyệt extent "dsSanPham".
+//   - Chiếu hàm "count(sp.dsBienThe)" đếm kích thước tập hợp Collection con.
+//   - Sử dụng sub-select lồng nhau để duyệt qua các biến thể và chi tiết đơn:
+//     "sum(select ct.soLuong from bt in sp.dsBienThe, ct in bt.dsChiTietDonHang where ct.donHang.trangThai != 'DA_HUY')".
+// -----------------------------------------------------------------------------
+
+select struct(
+    maSanPham:  sp.maSanPham,
+    tenSanPham: sp.tenSanPham,
+    giaNiemYet: sp.giaNiemYet,
+    soBienThe:  count(sp.dsBienThe),
+    tongDaDat:  sum(
+                    select ct.soLuong
+                    from bt in sp.dsBienThe,
+                         ct in bt.dsChiTietDonHang
+                    where ct.donHang.trangThai != "DA_HUY"
+                )
+)
+from sp in dsSanPham
+order by sp.maSanPham;
+
+/*
+BẢNG KẾT QUẢ MONG ĐỢI (10 bản ghi):
++-----------+-------------------------------+---------------+-----------+-----------+
+| maSanPham |          tenSanPham           |  giaNiemYet   | soBienThe | tongDaDat |
++-----------+-------------------------------+---------------+-----------+-----------+
+| SP01      | Nike Pegasus 41               | 3,200,000.00  |         3 |         7 |
+| SP02      | Adidas Ultraboost Light       | 3,800,000.00  |         2 |         4 |
+| SP03      | Nike LeBron Witness 8         | 2,900,000.00  |         2 |         1 |
+| SP04      | Biti's Hunter Street          |   950,000.00  |         2 |         2 |
+| SP05      | Adidas Predator League TF     | 2,150,000.00  |         2 |         2 |
+| SP06      | New Balance Fresh Foam Hierro | 3,450,000.00  |         3 |        12 |
+| SP07      | Puma Suede Classic            | 1,950,000.00  |         2 |         4 |
+| SP08      | Biti's Hunter Core Slip-on    |   850,000.00  |         2 |         3 |
+| SP09      | Puma Velocity Nitro 2         | 2,750,000.00  |         1 |         0 |
+| SP10      | Nike Air Max Classic          | 2,600,000.00  |         1 |         0 |
++-----------+-------------------------------+---------------+-----------+-----------+
+*/
